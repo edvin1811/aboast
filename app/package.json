@@ -16,7 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@clerk/nextjs": "^6.35.2",
+    "@clerk/nextjs": "^7.4.2",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^6.19.0",
     "@prisma/client": "^6.19.0",
@@ -33,7 +33,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.554.0",
-    "next": "^16.0.3",
+    "next": "^16.2.7",
     "pg": "^8.16.3",
     "prisma": "^6.19.0",
     "react": "^19.2.0",
