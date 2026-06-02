@@ -1,24 +1,31 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 
 /**
  * Rate-limit helpers for the public, unauthenticated endpoints.
  *
- * Backed by Vercel KV (Upstash Redis under the hood). When the KV env vars are
- * missing — e.g. local dev — every request resolves to `success: true` so the
- * app keeps working without external infra.
+ * Backed by Upstash Redis (via Vercel's Upstash Marketplace integration).
+ * Reads either the new `UPSTASH_REDIS_REST_*` env var names (Vercel
+ * Marketplace integration, 2025+) or the legacy `KV_REST_API_*` names
+ * (deprecated `@vercel/kv` integration). When neither is present — e.g.
+ * local dev — every request resolves to `allowed: true` so the app keeps
+ * working without external infra.
  */
 
-const isKvConfigured = Boolean(
-  process.env.KV_REST_API_URL && process.env.KV_REST_API_KV_REST_API_TOKEN ||
-    process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
-);
+const redisUrl =
+  process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const redisToken =
+  process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+const redis = redisUrl && redisToken
+  ? new Redis({ url: redisUrl, token: redisToken })
+  : null;
 
 function makeLimiter(limit: number, windowSeconds: `${number} s`, prefix: string) {
-  if (!isKvConfigured) return null;
+  if (!redis) return null;
   return new Ratelimit({
-    redis: kv,
+    redis,
     limiter: Ratelimit.slidingWindow(limit, windowSeconds),
     prefix,
     analytics: false,
