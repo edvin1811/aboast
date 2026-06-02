@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand — primary red kept verbatim */
+  --color-primary: #ff595e;
+  --color-primary-hover: #ec4046;
+  --color-primary-soft: #ffe7e6;
+  --color-primary-foreground: #ffffff;
+
+  /* Surfaces — bright */
+  --color-background: #fafaf7;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-muted: #f4f4f1;
+  --color-muted-foreground: #6b6b6b;
+  --color-border: #e8e8e3;
+  --color-input: #e8e8e3;
+  --color-ring: #ff595e;
+
+  --radius: 1.5rem;
+
+  --font-sans: var(--font-sans-family), -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-serif-family), "Iowan Old Style", Georgia, serif;
+}
+
+html,
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+/* Marquee track — used by WidgetShowcase MarqueeMock. Duplicate children so the
+   loop is seamless and translate by -50%. */
+@keyframes marquee-track {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee-track {
+  animation: marquee-track 28s linear infinite;
+}
+
+/* Vertical marquee — used by WidgetShowcase to scroll widget previews upward.
+   Duplicate children and translate Y by -50% for a seamless loop. */
+@keyframes marquee-vertical {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+.animate-marquee-vertical {
+  animation: marquee-vertical 38s linear infinite;
+}
+
+/* Page background — a soft, fixed radial tint of primary red at top center.
+   Bleeds in subtly behind hero and continues through the page so sections feel
+   anchored on the same canvas. */
+.page-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(255, 89, 94, 0.08) 0%, transparent 60%),
+    radial-gradient(40% 30% at 80% 30%, rgba(255, 89, 94, 0.04) 0%, transparent 70%);
+}
+
+/* —— Blog prose —— */
+.prose-aboast {
+  color: var(--color-foreground);
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+.prose-aboast p { margin-bottom: 1.2em; color: #2a2a2a; }
+.prose-aboast h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 1.8em;
+  margin-bottom: 0.5em;
+}
+.prose-aboast h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 1.5em;
+  margin-bottom: 0.4em;
+}
+.prose-aboast ul, .prose-aboast ol { margin: 1em 0 1.4em; padding-left: 1.5em; }
+.prose-aboast li { margin: 0.45em 0; }
+.prose-aboast a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+.prose-aboast a:hover { color: var(--color-primary-hover); }
+.prose-aboast strong { font-weight: 600; color: #0a0a0a; }
+.prose-aboast blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  margin: 1.4em 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #0a0a0a;
+  font-style: italic;
+}
+.prose-aboast pre {
+  background: #0a0a0a;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+  margin: 1.4em 0;
+  font-size: 0.95rem;
+}
+.prose-aboast code { font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 0.92em; }
+.prose-aboast :not(pre) > code {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+  padding: 0.12em 0.4em;
+  border-radius: 6px;
+}
+.prose-aboast img { border-radius: 16px; margin: 1.6em 0; }

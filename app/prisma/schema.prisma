@@ -1,0 +1,221 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  clerkId       String         @unique
+  email         String         @unique
+  firstName     String?
+  lastName      String?
+  imageUrl      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  workspaces    Workspace[]
+  testimonials  Testimonial[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  testimonials Testimonial[]
+  widgets      Widget[]
+  forms        Form[]
+  wallsOfLove  WallOfLove[]
+
+  @@map("workspaces")
+}
+
+model Testimonial {
+  id            String    @id @default(cuid())
+  content       String    @db.Text
+  rating        Int       @default(5)
+  authorName    String
+  authorEmail   String?
+  authorTitle   String?
+  authorCompany String?
+  authorImage   String?
+  isPublished   Boolean   @default(false)
+  isFavorite    Boolean   @default(false)
+
+  // Source information
+  source        String?   // 'form', 'manual', 'import'
+  sourceUrl     String?
+
+  // Media
+  videoUrl      String?
+  imageUrl      String?
+
+  // Metadata
+  tags          String[]  @default([])
+  customFields  Json?     // For extensibility
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  formId        String?
+  form          Form?     @relation(fields: [formId], references: [id], onDelete: SetNull)
+
+  widgetTestimonials WidgetTestimonial[]
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([isPublished])
+  @@index([formId])
+  // Composite — used by the public wall query: WHERE workspaceId = ? AND isPublished = true.
+  @@index([workspaceId, isPublished])
+  @@map("testimonials")
+}
+
+model Form {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String
+  shareId       String?        @unique // Globally unique ID for public sharing
+  description   String?
+
+  // Form settings
+  isActive      Boolean        @default(true)
+  autoPublish   Boolean        @default(false)
+
+  // Customization
+  thankYouMessage String       @default("Thank you for your feedback!")
+  fields        Json           // Form fields configuration
+  defaultTags   String[]       @default([]) // Auto-apply these tags to testimonials from this form
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  workspaceId   String
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  testimonials  Testimonial[]
+
+  @@unique([slug, workspaceId])
+  @@index([workspaceId])
+  @@index([slug])
+  @@index([shareId])
+  @@map("forms")
+}
+
+model Widget {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String
+  shareId         String?   @unique // Globally unique ID for public sharing
+
+  // Widget type and template
+  template        String    @default("grid") // 'grid', 'carousel', 'masonry', 'wall-of-love', etc.
+
+  // Display settings
+  isActive        Boolean   @default(true)
+  autoRotate      Boolean   @default(false)
+  rotateInterval  Int?      // in seconds
+
+  // Customization
+  theme           Json      // Colors, fonts, styling
+  layout          Json      // Layout-specific settings
+
+  // Content settings
+  showRating      Boolean   @default(true)
+  showAuthorImage Boolean   @default(true)
+  showDate        Boolean   @default(false)
+  maxTestimonials Int?
+
+  // Analytics
+  views           Int       @default(0)
+  engagements     Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspaceId     String
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  widgetTestimonials WidgetTestimonial[]
+
+  @@unique([slug, workspaceId])
+  @@index([workspaceId])
+  @@index([slug])
+  @@index([shareId])
+  @@map("widgets")
+}
+
+model WidgetTestimonial {
+  id             String       @id @default(cuid())
+  order          Int          @default(0)
+
+  widgetId       String
+  widget         Widget       @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+
+  testimonialId  String
+  testimonial    Testimonial  @relation(fields: [testimonialId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+
+  @@unique([widgetId, testimonialId])
+  @@index([widgetId])
+  @@index([testimonialId])
+  @@map("widget_testimonials")
+}
+
+model WallOfLove {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String
+  shareId     String?   @unique // Globally unique ID for public sharing
+
+  // Display settings
+  isActive    Boolean   @default(true)
+
+  // Customization
+  title       String?   @default("Wall of Love")
+  description String?   @default("See what our customers are saying")
+  theme       Json      @default("{\"primaryColor\":\"#9333ea\",\"backgroundColor\":\"#ffffff\",\"textColor\":\"#000000\"}")
+  layout      String    @default("masonry") // 'masonry', 'grid', 'list'
+
+  // Display options
+  showRating      Boolean @default(true)
+  showDate        Boolean @default(true)
+  showCompany     Boolean @default(true)
+  columns         Int     @default(3) // Number of columns for grid/masonry
+
+  // Analytics
+  views           Int       @default(0)
+  engagements     Int       @default(0)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([slug, workspaceId])
+  @@index([workspaceId])
+  @@index([slug])
+  @@index([shareId])
+  @@map("walls_of_love")
+}

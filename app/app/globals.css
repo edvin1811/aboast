@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand — primary red kept verbatim */
+  --color-primary: #ff595e;
+  --color-primary-hover: #ec4046;
+  --color-primary-soft: #ffe7e6;
+  --color-primary-foreground: #ffffff;
+
+  /* Surfaces — bright */
+  --color-background: #fafaf7;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a0a0a;
+  --color-muted: #f4f4f1;
+  --color-muted-foreground: #6b6b6b;
+  --color-border: #e8e8e3;
+  --color-input: #e8e8e3;
+  --color-ring: #ff595e;
+  --color-secondary: #fafafa;
+  --color-secondary-foreground: #0a0a0a;
+  --color-accent: #f4f4f1;
+  --color-accent-foreground: #0a0a0a;
+
+  --color-destructive: hsl(0 84% 60%);
+  --color-destructive-foreground: #ffffff;
+  --color-success: hsl(142 76% 36%);
+  --color-success-foreground: #ffffff;
+  --color-warning: hsl(38 92% 50%);
+  --color-warning-foreground: #ffffff;
+
+  --radius: 1.5rem;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  --font-sans: var(--font-sans-family), -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-serif-family), "Iowan Old Style", Georgia, serif;
+  --font-mono: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+}
+
+/* Page background — soft, fixed radial tint of primary red.
+   Used on the public submit page and other marketing-flavored surfaces. */
+.page-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(255, 89, 94, 0.08) 0%, transparent 60%),
+    radial-gradient(40% 30% at 80% 30%, rgba(255, 89, 94, 0.04) 0%, transparent 70%);
+}
+
+/* ---------- Motion ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in         { animation: fadeIn 0.3s ease-out; }
+.animate-slide-in-bottom { animation: slideInFromBottom 0.4s ease-out; }
+.animate-slide-in-top    { animation: slideInFromTop 0.4s ease-out; }
+.animate-slide-in-left   { animation: slideInFromLeft 0.4s ease-out; }
+.animate-slide-in-right  { animation: slideInFromRight 0.4s ease-out; }
+.animate-scale-in        { animation: scaleIn 0.3s ease-out; }
+
+.animate-stagger > * {
+  animation: slideInFromBottom 0.4s ease-out;
+  animation-fill-mode: backwards;
+}
+.animate-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.animate-stagger > *:nth-child(2) { animation-delay: 0.10s; }
+.animate-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.animate-stagger > *:nth-child(4) { animation-delay: 0.20s; }
+.animate-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.animate-stagger > *:nth-child(6) { animation-delay: 0.30s; }
+.animate-stagger > *:nth-child(7) { animation-delay: 0.35s; }
+.animate-stagger > *:nth-child(8) { animation-delay: 0.40s; }
+.animate-stagger > *:nth-child(9) { animation-delay: 0.45s; }
+
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skeleton {
+  background-color: var(--color-muted);
+  border-radius: 10px;
+  animation: pulse 1.5s ease-in-out infinite;
+}

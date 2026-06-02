@@ -1,0 +1,31 @@
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y29ycmVjdC1xdWV0emFsLTkwLmNsZXJrLmFjY291bnRzLmRldiQ
+CLERK_SECRET_KEY=sk_test_MwizySdpJShEqNmGFrgpS6f0lLYbWLMlhsFq4viYzI
+
+# Clerk URLs
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+
+# Database
+DATABASE_URL="postgresql://neondb_owner:npg_cvSY0IfD7Htk@ep-dawn-brook-adkpwey3-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+# App URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+
+# Import
+
+GOOGLE_PLACES_API_KEY=AIzaSyAQOn2iumq5vNFBUbGmWiCdXnb8-4A_95Q
+
+# Get Trustpilot API key from: https://developers.trustpilot.com/
+TRUSTPILOT_API_KEY=your_trustpilot_api_key_here
+
+# Get TripAdvisor API key from: https://www.tripadvisor.com/developers
+TRIPADVISOR_API_KEY=your_tripadvisor_api_key_here
+
+# Get Yelp Fusion API key from: https://www.yelp.com/developers
+YELP_API_KEY=your_yelp_api_key_here
+
+# Strapi CMS
+NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
