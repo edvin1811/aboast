@@ -4,7 +4,15 @@ import type { MetadataRoute } from 'next';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getAllPosts();
+  // Strapi may be unreachable during build (build server can't reach a
+  // localhost CMS, or Strapi isn't deployed yet). Don't fail the whole
+  // build for the sitemap — just skip blog entries.
+  let posts: Awaited<ReturnType<typeof getAllPosts>> = [];
+  try {
+    posts = await getAllPosts();
+  } catch {
+    posts = [];
+  }
 
   const blogEntries = posts.map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
