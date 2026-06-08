@@ -24,6 +24,8 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.aboast.com";
+
 export async function generateMetadata({
   params,
 }: {
@@ -41,18 +43,29 @@ export async function generateMetadata({
     : post.coverImage
       ? strapiImageUrl(post.coverImage.url)
       : undefined;
+  const url = `${BASE_URL}/blog/${slug}`;
+  const canonical = seo?.canonicalURL ?? url;
 
   return {
     title: `${title} — Aboast Blog`,
     description,
     robots: seo?.noIndex ? "noindex" : "index, follow",
-    alternates: seo?.canonicalURL ? { canonical: seo.canonicalURL } : undefined,
+    alternates: { canonical },
     openGraph: {
       title,
       description,
+      url,
+      siteName: "Aboast",
       images: ogImage ? [ogImage] : [],
       type: "article",
       publishedTime: post.publishedAt,
+      authors: post.author ? [post.author] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ogImage ? [ogImage] : [],
     },
   };
 }
@@ -148,8 +161,56 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const initial = (post.author?.[0] ?? "A").toUpperCase();
 
+  const ogImage = post.seo?.ogImage
+    ? strapiImageUrl(post.seo.ogImage.url)
+    : post.coverImage
+      ? strapiImageUrl(post.coverImage.url)
+      : undefined;
+
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    image: ogImage ? [ogImage] : [],
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt ?? post.publishedAt,
+    author: post.author
+      ? { "@type": "Person", name: post.author }
+      : undefined,
+    publisher: {
+      "@type": "Organization",
+      name: "Aboast",
+      logo: { "@type": "ImageObject", url: `${BASE_URL}/logo-color.svg` },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${BASE_URL}/blog/${slug}`,
+    },
+  };
+
+  const breadcrumbsLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${BASE_URL}/blog` },
+      { "@type": "ListItem", position: 3, name: post.title, item: `${BASE_URL}/blog/${slug}` },
+    ],
+  };
+
   return (
     <div className="relative flex flex-col items-center pb-24 min-h-screen">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsLd) }}
+      />
       <Nav />
 
       {/* Header */}
@@ -195,7 +256,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Cover */}
       {post.coverImage && (
         <div className="w-full max-w-4xl mx-auto px-6 mt-12">
-          <div className="rounded-3xl overflow-hidden border border-border bg-white">
+          <div className="rounded-2xl overflow-hidden border border-border bg-white">
             <Image
               src={strapiImageUrl(post.coverImage.url)}
               alt={post.coverImage.alternativeText || post.title}
@@ -215,7 +276,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {/* In-article CTA */}
         <div className="mt-14 relative">
           <div className="absolute inset-0 bg-primary/[0.06] blur-[80px] rounded-full pointer-events-none" />
-          <div className="relative bg-white border border-border rounded-3xl p-9 md:p-12 overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_12px_32px_-18px_rgba(15,15,15,0.12)]">
+          <div className="relative bg-white border border-border rounded-2xl p-9 md:p-12 overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_12px_32px_-18px_rgba(15,15,15,0.12)]">
             <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary mb-3">Try aboast</p>
             <h3 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4 leading-[1.1] text-foreground">

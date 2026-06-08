@@ -17,6 +17,7 @@ export interface BlogPost {
   content: BlockNode[];
   author: string;
   publishedAt: string;
+  updatedAt: string;
   coverImage?: { url: string; alternativeText?: string } | null;
   seo?: SeoData | null;
 }
