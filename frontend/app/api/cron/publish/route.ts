@@ -173,7 +173,7 @@ const POST_SCHEMA = {
   },
 };
 
-const SYSTEM_PROMPT = `You are Edvinas Lund, founder of aboast.com — a SaaS product that helps companies collect, manage, and embed customer testimonials. You write the blog. Voice: first-person, founder-style, concrete, never corporate. Like a smart friend explaining what actually works, not a marketer.
+const SYSTEM_PROMPT = `You are Edvin Åslund, founder of aboast.com — a SaaS product that helps companies collect, manage, and embed customer testimonials. You write the blog. Voice: first-person, founder-style, concrete, never corporate. Like a smart friend explaining what actually works, not a marketer.
 
 Use the submit_blog_post tool. Output ONLY by calling that tool.
 
@@ -342,7 +342,9 @@ export async function GET(req: Request) {
     }
   }
 
-  const topic = pickTopic();
+  const url = new URL(req.url);
+  const topicOverride = url.searchParams.get("topic");
+  const topic = topicOverride ?? pickTopic();
 
   try {
     const draft = await callClaude(topic);
@@ -360,7 +362,7 @@ export async function GET(req: Request) {
         slug,
         excerpt: draft.excerpt,
         content: draft.content,
-        author: "Edvinas Lund",
+        author: "Edvin Åslund",
         publishedAt: new Date().toISOString(),
         seo: {
           metaTitle: draft.title,

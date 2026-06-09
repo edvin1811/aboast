@@ -247,16 +247,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </span>
             <div>
               <p className="text-[15px] font-medium text-foreground">{post.author}</p>
-              <p className="text-sm text-muted-foreground">Writing about social proof, growth, and product</p>
+              <p className="text-sm text-muted-foreground">Founder of Aboast</p>
             </div>
           </div>
         )}
       </section>
 
-      {/* Cover */}
-      {post.coverImage && (
-        <div className="w-full max-w-4xl mx-auto px-6 mt-12">
-          <div className="rounded-2xl overflow-hidden border border-border bg-white">
+      {/* Cover — falls back to /api/og banner when no Strapi cover */}
+      <div className="w-full max-w-4xl mx-auto px-6 mt-12">
+        <div className="rounded-2xl overflow-hidden border border-border bg-white">
+          {post.coverImage ? (
             <Image
               src={strapiImageUrl(post.coverImage.url)}
               alt={post.coverImage.alternativeText || post.title}
@@ -265,9 +265,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               className="w-full object-cover"
               priority
             />
-          </div>
+          ) : (
+            <Image
+              src={`${BASE_URL}/api/og?title=${encodeURIComponent(post.title)}&tag=BLOG`}
+              alt={post.title}
+              width={1200}
+              height={630}
+              className="w-full object-cover"
+              priority
+              unoptimized
+            />
+          )}
         </div>
-      )}
+      </div>
 
       {/* Body */}
       <article className="w-full max-w-3xl mx-auto px-6 mt-12">
