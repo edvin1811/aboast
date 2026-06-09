@@ -42,7 +42,7 @@ export async function generateMetadata({
     ? strapiImageUrl(seo.ogImage.url)
     : post.coverImage
       ? strapiImageUrl(post.coverImage.url)
-      : undefined;
+      : `${BASE_URL}/api/og?title=${encodeURIComponent(post.title)}&tag=BLOG`;
   const url = `${BASE_URL}/blog/${slug}`;
   const canonical = seo?.canonicalURL ?? url;
 
@@ -165,14 +165,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     ? strapiImageUrl(post.seo.ogImage.url)
     : post.coverImage
       ? strapiImageUrl(post.coverImage.url)
-      : undefined;
+      : `${BASE_URL}/api/og?title=${encodeURIComponent(post.title)}&tag=BLOG`;
 
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt,
-    image: ogImage ? [ogImage] : [],
+    image: [ogImage],
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
     author: post.author
