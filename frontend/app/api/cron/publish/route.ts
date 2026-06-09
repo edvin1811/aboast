@@ -8,7 +8,7 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL!;
 const STRAPI_TOKEN = process.env.STRAPI_TOKEN!;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 const CRON_SECRET = process.env.CRON_SECRET;
-const MODEL = "claude-opus-4-7";
+const MODEL = "claude-sonnet-4-6";
 
 /**
  * 30+ seed topics covering aboast's SEO clusters. Daily cron rotates
