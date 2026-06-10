@@ -213,8 +213,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       />
       <Nav />
 
-      {/* Header */}
-      <section className="w-full max-w-3xl mx-auto mt-16 px-6">
+      {/* Back link */}
+      <section className="w-full max-w-4xl mx-auto mt-12 px-6">
         <Link
           href="/blog"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -222,39 +222,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
           Back to blog
         </Link>
-
-        <div className="flex items-center gap-2.5 text-sm text-muted-foreground mb-5">
-          <span>{formatDate(post.publishedAt)}</span>
-          <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-          <span>{readingTime(post.content)}</span>
-          {post.author && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-              <span>{post.author}</span>
-            </>
-          )}
-        </div>
-
-        <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-foreground leading-[1.06] mb-6">
-          {post.title}
-        </h1>
-        <p className="text-xl text-muted-foreground leading-relaxed">{post.excerpt}</p>
-
-        {post.author && (
-          <div className="flex items-center gap-3.5 mt-8">
-            <span className="w-11 h-11 rounded-full bg-primary-soft border border-primary/30 text-primary grid place-items-center font-semibold text-lg">
-              {initial}
-            </span>
-            <div>
-              <p className="text-[15px] font-medium text-foreground">{post.author}</p>
-              <p className="text-sm text-muted-foreground">Founder of Aboast</p>
-            </div>
-          </div>
-        )}
       </section>
 
       {/* Cover — falls back to /api/og banner when no Strapi cover */}
-      <div className="w-full max-w-4xl mx-auto px-6 mt-12">
+      <div className="w-full max-w-4xl mx-auto px-6">
         <div className="rounded-2xl overflow-hidden border border-border bg-white">
           {post.coverImage ? (
             <Image
@@ -278,6 +249,40 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           )}
         </div>
       </div>
+
+      {/* Header */}
+      <section className="w-full max-w-3xl mx-auto mt-12 px-6">
+        <div className="flex items-center gap-2.5 text-sm text-muted-foreground mb-5">
+          <span>{formatDate(post.publishedAt)}</span>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+          <span>{readingTime(post.content)}</span>
+          {post.author && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <span>{post.author}</span>
+            </>
+          )}
+        </div>
+
+        <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-foreground leading-[1.06] mb-6">
+          {post.title}
+        </h1>
+        <p className="text-xl text-muted-foreground leading-relaxed">{post.excerpt}</p>
+
+        {post.author && (
+          <div className="flex items-start gap-3.5 mt-8 pt-6 border-t border-border">
+            <span className="w-11 h-11 rounded-full bg-primary-soft border border-primary/30 text-primary grid place-items-center font-semibold text-lg shrink-0">
+              {initial}
+            </span>
+            <div>
+              <p className="text-[15px] font-medium text-foreground">{post.author}</p>
+              <p className="text-sm text-muted-foreground leading-snug max-w-md">
+                Founder of <span className="text-foreground font-medium">Aboast</span> — a tool for SaaS teams to collect customer testimonials, manage them in one place, and embed them on any site with a single line of code.
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* Body */}
       <article className="w-full max-w-3xl mx-auto px-6 mt-12">

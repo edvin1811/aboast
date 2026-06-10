@@ -18,7 +18,7 @@
   --color-input: #e8e8e3;
   --color-ring: #ff595e;
 
-  --radius: 1.5rem;
+  --radius: 0.75rem;
 
   --font-sans: var(--font-sans-family), -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-serif: var(--font-serif-family), "Iowan Old Style", Georgia, serif;
@@ -78,29 +78,34 @@ body {
 /* —— Blog prose —— */
 .prose-aboast {
   color: var(--color-foreground);
-  font-size: 1.125rem;
-  line-height: 1.75;
+  font-size: 1.2rem;
+  line-height: 1.8;
+  letter-spacing: -0.005em;
 }
-.prose-aboast p { margin-bottom: 1.2em; color: #2a2a2a; }
+.prose-aboast p { margin-bottom: 1.45em; color: #2a2a2a; }
 .prose-aboast h2 {
-  font-size: 1.875rem;
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  margin-top: 1.8em;
-  margin-bottom: 0.5em;
+  margin-top: 2.2em;
+  margin-bottom: 0.6em;
+  color: #0a0a0a;
 }
 .prose-aboast h3 {
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  margin-top: 1.5em;
+  margin-top: 1.7em;
   margin-bottom: 0.4em;
+  color: #0a0a0a;
 }
-.prose-aboast ul, .prose-aboast ol { margin: 1em 0 1.4em; padding-left: 1.5em; }
-.prose-aboast li { margin: 0.45em 0; }
+.prose-aboast ul, .prose-aboast ol { margin: 1.2em 0 1.8em; padding-left: 1.6em; }
+.prose-aboast li { margin: 0.65em 0; padding-left: 0.25em; }
+.prose-aboast ul li::marker { color: var(--color-primary); }
+.prose-aboast ol li::marker { color: var(--color-primary); font-weight: 600; }
 .prose-aboast a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
 .prose-aboast a:hover { color: var(--color-primary-hover); }
-.prose-aboast strong { font-weight: 600; color: #0a0a0a; }
+.prose-aboast strong { font-weight: 700; color: #0a0a0a; background: linear-gradient(transparent 68%, rgba(255, 89, 94, 0.18) 68%); padding: 0 0.05em; }
 .prose-aboast blockquote {
   border-left: 3px solid var(--color-primary);
   padding: 0.25rem 0 0.25rem 1.25rem;
