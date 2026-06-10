@@ -159,24 +159,24 @@ function Logomark() {
   return (
     <div
       style={{
-        width: 52,
-        height: 52,
+        width: 56,
+        height: 56,
         borderRadius: 14,
         background: "white",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         boxShadow: "0 8px 20px -6px rgba(0,0,0,0.25)",
+        padding: 10,
       }}
     >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M4 18c0-3.2 2.3-6 5.5-6h1c2 0 3.7 1.4 3.7 3.2v.3c0 1.7-1.4 3-3 3H8M14 6c2.6 0 4.8 1.6 5.5 4l.5 2.5c.2 1 .9 1.8 1.7 2L21 16"
-          stroke={BRAND_RED}
-          strokeWidth="2.4"
-          strokeLinecap="round"
-        />
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="https://www.aboast.com/logo-color.svg"
+        alt="aboast"
+        width={36}
+        height={36}
+      />
     </div>
   );
 }
