@@ -276,9 +276,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </span>
             <div>
               <p className="text-[15px] font-medium text-foreground">{post.author}</p>
-              <p className="text-sm text-muted-foreground leading-snug max-w-md">
-                Founder of <span className="text-foreground font-medium">Aboast</span> — a tool for SaaS teams to collect customer testimonials, manage them in one place, and embed them on any site with a single line of code.
-              </p>
+              <p className="text-sm text-muted-foreground">Founder of Aboast</p>
             </div>
           </div>
         )}
