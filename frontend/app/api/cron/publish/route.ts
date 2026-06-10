@@ -295,15 +295,28 @@ function validate(p: any): { ok: true } | { ok: false; reason: string } {
   const wc = text.trim().split(/\s+/).filter(Boolean).length;
   if (wc < 1100 || wc > 2000) return { ok: false, reason: `word_count_${wc}` };
 
-  const titleHasKeyword = new RegExp(p.target_keyword, "i").test(p.title);
-  if (!titleHasKeyword) return { ok: false, reason: "keyword_missing_from_title" };
-
-  // Soft check: at least one H2 should contain a meaningful word from the
-  // keyword (any token > 4 chars). Logged when it fails but doesn't block.
+  // Meaningful keyword words (≥4 chars) must ALL appear in the title,
+  // prefix-matched so "testimonial" matches "testimonials". Plural/word-order
+  // tolerant — exact substring was too strict.
   const keywordWords = p.target_keyword
     .toLowerCase()
     .split(/\s+/)
-    .filter((w: string) => w.length > 4);
+    .filter((w: string) => w.length >= 4);
+
+  if (keywordWords.length > 0) {
+    const titleLower = p.title.toLowerCase();
+    const missingFromTitle = keywordWords.filter(
+      (w: string) => !new RegExp(`\\b${w}`, "i").test(titleLower)
+    );
+    if (missingFromTitle.length > 0) {
+      return {
+        ok: false,
+        reason: `keyword_missing_from_title: ${missingFromTitle.join(",")}`,
+      };
+    }
+  }
+
+  // Soft check: at least one H2 should contain a meaningful keyword word.
   const h2HasSomeKeywordWord = p.content.some(
     (b: any) =>
       b.type === "heading" &&
@@ -312,7 +325,7 @@ function validate(p: any): { ok: true } | { ok: false; reason: string } {
         new RegExp(`\\b${w}`, "i").test(flattenText([b]))
       )
   );
-  if (!h2HasSomeKeywordWord) {
+  if (!h2HasSomeKeywordWord && keywordWords.length > 0) {
     console.warn("[cron/publish] soft warn: no H2 contains a keyword token", {
       target_keyword: p.target_keyword,
     });
