@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUserPlan } from "@/lib/use-user-plan";
+import {
+  useUpgradeDialog,
+  handleQuotaResponse,
+} from "@/lib/use-upgrade-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,6 +49,8 @@ interface ParsedTestimonial {
 
 export default function ImportTestimonialsPage() {
   const router = useRouter();
+  const { data: planData, refresh: refreshPlan } = useUserPlan();
+  const { showUpgrade } = useUpgradeDialog();
   const [importing, setImporting] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -182,6 +189,21 @@ export default function ImportTestimonialsPage() {
       return;
     }
 
+    // Client-side preflight — if we know plan + usage, surface the paywall
+    // BEFORE the round trip when the import would clearly exceed the quota.
+    if (planData && Number.isFinite(planData.limits.testimonials)) {
+      const wouldBe = planData.usage.testimonials + validTestimonials.length;
+      if (wouldBe > planData.limits.testimonials) {
+        showUpgrade({
+          kind: "quota_reached",
+          resource: "import",
+          current: wouldBe,
+          limit: planData.limits.testimonials,
+        });
+        return;
+      }
+    }
+
     setImporting(true);
     try {
       const response = await fetch("/api/testimonials/bulk-import", {
@@ -190,10 +212,16 @@ export default function ImportTestimonialsPage() {
         body: JSON.stringify({ testimonials: validTestimonials }),
       });
 
+      if (await handleQuotaResponse(response, showUpgrade)) {
+        setImporting(false);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Failed to import testimonials");
       }
 
+      await refreshPlan();
       router.push("/dashboard/testimonials");
       router.refresh();
     } catch (error) {

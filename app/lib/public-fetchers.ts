@@ -46,6 +46,7 @@ export const getCachedForm = (shareId: string) =>
         fields,
         thankYouMessage: form.thankYouMessage,
         isActive: form.isActive,
+        workspaceId: form.workspaceId,
       };
     },
     ["form-public", shareId],
@@ -57,7 +58,15 @@ export const getCachedWall = (shareId: string) =>
     async () => {
       const wall = await db.wallOfLove.findUnique({
         where: { shareId },
-        include: { workspace: { select: { id: true, name: true } } },
+        include: {
+          workspace: {
+            select: {
+              id: true,
+              name: true,
+              user: { select: { plan: true } },
+            },
+          },
+        },
       });
       if (!wall || !wall.isActive) return null;
 
@@ -78,6 +87,7 @@ export const getCachedWall = (shareId: string) =>
       });
 
       return {
+        ownerPlan: wall.workspace.user.plan as "FREE" | "PRO",
         wall: {
           id: wall.id,
           name: wall.name,

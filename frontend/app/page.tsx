@@ -8,6 +8,7 @@ import { Process } from "@/components/sections/process";
 import { WidgetShowcase } from "@/components/sections/widget-showcase";
 import { CTABox } from "@/components/sections/cta-box";
 import { TrustedBy } from "@/components/sections/trusted-by";
+import { PricingMini } from "@/components/sections/pricing-mini";
 
 export default function HomePage() {
   return (
@@ -19,6 +20,7 @@ export default function HomePage() {
       <Process />
       <WidgetShowcase />
       <Results />
+      <PricingMini />
       <CTABox />
       <TrustedBy />
       <Footer />

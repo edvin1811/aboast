@@ -94,7 +94,7 @@ export function CarouselWidget({
 
         {/* Testimonial Card */}
         <div
-          className="rounded-3xl p-8 md:p-10 text-center"
+          className="rounded-2xl p-8 md:p-10 text-center"
           style={{
             backgroundColor,
             color: textColor,

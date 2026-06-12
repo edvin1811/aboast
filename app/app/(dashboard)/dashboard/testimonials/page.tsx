@@ -71,7 +71,7 @@ export default async function TestimonialsPage() {
       />
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="relative overflow-hidden bg-white border border-primary/30 rounded-3xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(255,89,94,0.20)]">
+        <div className="relative overflow-hidden bg-white border border-border rounded-2xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-primary/[0.08] blur-[40px] rounded-full pointer-events-none" />
           <div className="relative">
             <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
@@ -84,7 +84,7 @@ export default async function TestimonialsPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-border rounded-3xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
+        <div className="bg-white border border-border rounded-2xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
           <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
             Published
           </div>
@@ -94,7 +94,7 @@ export default async function TestimonialsPage() {
           <div className="mt-2 text-sm text-muted-foreground">live across widgets</div>
         </div>
 
-        <div className="bg-white border border-border rounded-3xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
+        <div className="bg-white border border-border rounded-2xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
           <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
             Avg rating
           </div>

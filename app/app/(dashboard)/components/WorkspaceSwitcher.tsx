@@ -20,15 +20,37 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, Plus, Check } from "lucide-react";
+import { ChevronDown, Plus, Check, Lock } from "lucide-react";
 import { useWorkspace } from "./WorkspaceProvider";
+import { useUserPlan, isAtQuota } from "@/lib/use-user-plan";
+import {
+  useUpgradeDialog,
+  handleQuotaResponse,
+} from "@/lib/use-upgrade-dialog";
 
 export function WorkspaceSwitcher() {
   const router = useRouter();
   const { currentWorkspace, workspaces, setCurrentWorkspace, setWorkspaces, loading } = useWorkspace();
+  const { data: planData, refresh: refreshPlan } = useUserPlan();
+  const { showUpgrade } = useUpgradeDialog();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [creating, setCreating] = useState(false);
+
+  const atWorkspaceQuota = isAtQuota(planData, "workspaces");
+
+  const openCreateWorkspace = () => {
+    if (atWorkspaceQuota && planData) {
+      showUpgrade({
+        kind: "quota_reached",
+        resource: "workspace",
+        current: planData.usage.workspaces,
+        limit: planData.limits.workspaces,
+      });
+      return;
+    }
+    setIsCreateDialogOpen(true);
+  };
 
   const handleCreateWorkspace = async () => {
     if (!newWorkspaceName.trim()) return;
@@ -49,12 +71,20 @@ export function WorkspaceSwitcher() {
         }),
       });
 
+      // Server-side quota check (in case the client state was stale).
+      if (await handleQuotaResponse(response, showUpgrade)) {
+        setIsCreateDialogOpen(false);
+        setNewWorkspaceName("");
+        return;
+      }
+
       if (response.ok) {
         const newWorkspace = await response.json();
         console.log("New workspace created:", newWorkspace);
         setWorkspaces([...workspaces, newWorkspace]);
         setNewWorkspaceName("");
         setIsCreateDialogOpen(false);
+        await refreshPlan();
 
         // Switch to the new workspace (this will reload the page)
         await setCurrentWorkspace(newWorkspace);
@@ -136,11 +166,23 @@ export function WorkspaceSwitcher() {
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="text-primary"
+            onClick={openCreateWorkspace}
+            className={atWorkspaceQuota ? "text-muted-foreground" : "text-primary"}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Create Workspace
+            {atWorkspaceQuota ? (
+              <>
+                <Lock className="h-4 w-4 mr-2" />
+                <span className="flex-1">Create Workspace</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider bg-primary-soft text-primary px-1.5 py-0.5 rounded-md">
+                  Pro
+                </span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Workspace
+              </>
+            )}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

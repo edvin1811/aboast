@@ -33,12 +33,16 @@ function makeLimiter(limit: number, windowSeconds: `${number} s`, prefix: string
 }
 
 // /api/submissions — 10 per minute per IP, 50 per minute per shareId.
-const submissionByIp = makeLimiter(10, "60 s", "rl:sub:ip");
+const submissionByIp = makeLimiter(3, "60 s", "rl:sub:ip");
 const submissionByShareId = makeLimiter(50, "60 s", "rl:sub:share");
 
 // /api/forms/public/[shareId] — 60 per minute per IP. Loose; legit traffic
 // hits the CDN cache layer anyway, this is just abuse protection.
 const formByIp = makeLimiter(60, "60 s", "rl:form:ip");
+
+// /api/track/[type]/[shareId] — at most 1 view per IP+shareId per 60s so
+// a refresher can't inflate someone's view count. Window-based.
+const viewByIpShare = makeLimiter(1, "60 s", "rl:view");
 
 export function getIp(req: NextRequest): string {
   return (
@@ -69,5 +73,20 @@ export async function rateLimitForm(req: NextRequest): Promise<boolean> {
   if (!formByIp) return true;
   const ip = getIp(req);
   const { success } = await formByIp.limit(ip);
+  return success;
+}
+
+/**
+ * View tracking — gate per IP × shareId pair so refresh-spamming a single
+ * viewer can't pump the counter. When Redis isn't configured (local dev),
+ * always return true and skip the increment cost too — caller decides.
+ */
+export async function rateLimitView(
+  req: NextRequest,
+  shareId: string
+): Promise<boolean> {
+  if (!viewByIpShare) return true;
+  const ip = getIp(req);
+  const { success } = await viewByIpShare.limit(`${ip}:${shareId}`);
   return success;
 }

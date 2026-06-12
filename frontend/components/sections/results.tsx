@@ -47,7 +47,7 @@ export function Results() {
         {STATS.map(({ stat, label, sub, visual }) => (
           <div
             key={stat}
-            className="relative overflow-hidden group bg-white border border-border hover:border-neutral-300 rounded-3xl p-8 flex flex-col transition-all duration-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
+            className="relative overflow-hidden group bg-white border border-border hover:border-neutral-300 rounded-2xl p-8 flex flex-col transition-all duration-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
           >
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-primary/[0.06] blur-[50px] rounded-full pointer-events-none transition-opacity opacity-60 group-hover:opacity-100" />
 

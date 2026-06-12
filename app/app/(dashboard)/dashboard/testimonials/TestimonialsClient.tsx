@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUserPlan, quotaUsageRatio } from "@/lib/use-user-plan";
+import { useUpgradeDialog } from "@/lib/use-upgrade-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -399,6 +401,8 @@ export function TestimonialsClient({ testimonials }: TestimonialsClientProps) {
 
   return (
     <>
+      <TestimonialsQuotaBanner />
+
       {/* Search Bar and Filter Button */}
       <div className="flex gap-4 mb-6">
         {/* Search Bar */}
@@ -1125,5 +1129,56 @@ export function TestimonialsClient({ testimonials }: TestimonialsClientProps) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function TestimonialsQuotaBanner() {
+  const { data } = useUserPlan();
+  const { showUpgrade } = useUpgradeDialog();
+
+  if (!data) return null;
+  if (data.plan === "PRO") return null;
+
+  const ratio = quotaUsageRatio(data, "testimonials");
+  if (ratio < 0.8) return null;
+  const isAt = ratio >= 1;
+  const used = data.usage.testimonials;
+  const limit = data.limits.testimonials;
+
+  return (
+    <div
+      className={`flex items-center justify-between gap-4 px-4 py-3 mb-5 rounded-xl border ${
+        isAt
+          ? "bg-primary-soft/40 border-primary/30"
+          : "bg-amber-50 border-amber-200"
+      }`}
+    >
+      <div>
+        <p className="text-sm font-semibold text-foreground">
+          {isAt
+            ? "You've hit your testimonial limit"
+            : "You're approaching your testimonial limit"}
+        </p>
+        <p className="text-[13px] text-muted-foreground">
+          {used}/{limit} testimonials used on Free. {isAt
+            ? "New submissions are blocked until you upgrade."
+            : "Upgrade to Pro for unlimited testimonials."}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          showUpgrade({
+            kind: "quota_reached",
+            resource: "testimonial",
+            current: used,
+            limit,
+          })
+        }
+        className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+      >
+        Upgrade
+      </button>
+    </div>
   );
 }

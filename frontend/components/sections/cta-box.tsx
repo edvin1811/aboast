@@ -6,7 +6,7 @@ export function CTABox() {
   return (
     <section className="w-full max-w-4xl mx-auto mt-32 px-6 relative">
       <div className="absolute inset-0 bg-primary/[0.08] blur-[100px] rounded-full pointer-events-none" />
-      <div className="relative z-10 bg-white border border-border rounded-[2.5rem] p-12 md:p-20 flex flex-col items-center text-center overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+      <div className="relative z-10 bg-white border border-border rounded-2xl p-12 md:p-20 flex flex-col items-center text-center overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
         <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         <div className="absolute bottom-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 

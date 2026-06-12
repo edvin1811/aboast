@@ -8,6 +8,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Plan {
+  FREE
+  PRO
+}
+
 model User {
   id            String         @id @default(cuid())
   clerkId       String         @unique
@@ -17,6 +22,12 @@ model User {
   imageUrl      String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  // Billing
+  plan                 Plan      @default(FREE)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  currentPeriodEnd     DateTime?
 
   workspaces    Workspace[]
   testimonials  Testimonial[]
@@ -105,6 +116,11 @@ model Form {
   thankYouMessage String       @default("Thank you for your feedback!")
   fields        Json           // Form fields configuration
   defaultTags   String[]       @default([]) // Auto-apply these tags to testimonials from this form
+
+  // Stats — incremented by /api/track/form/[shareId] via the tracking pixel
+  // embedded on the public submit page. Submissions are counted via the
+  // testimonials relation (`_count.testimonials`).
+  views         Int            @default(0)
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { getCurrentWorkspace } from "@/lib/workspace";
+import { assertCanImportTestimonials, QuotaError } from "@/lib/quotas";
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,6 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Preflight: bulk import shouldn't push the workspace over quota.
+    await assertCanImportTestimonials(workspace.id, testimonials.length);
+
     // Create testimonials in bulk
     const createdTestimonials = await Promise.all(
       testimonials.map(async (testimonial: any) => {
@@ -73,6 +77,9 @@ export async function POST(request: NextRequest) {
       testimonials: createdTestimonials,
     });
   } catch (error) {
+    if (error instanceof QuotaError) {
+      return NextResponse.json(error.toResponseBody(), { status: 409 });
+    }
     console.error("Error bulk importing testimonials:", error);
     return NextResponse.json(
       { error: "Internal server error" },

@@ -54,3 +54,9 @@ prisma/dev.db-journal
 
 # Misc
 *.tgz
+
+# Local scratch notes (kept out of git)
+NOTES.md
+notes.md
+SCRATCH.md
+scratch.md

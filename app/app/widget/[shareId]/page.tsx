@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getCachedWidget } from "@/lib/public-fetchers";
 import { GridWidget } from "@/components/widgets/GridWidget";
 import { CarouselWidget } from "@/components/widgets/CarouselWidget";
+import { TrackingPixel } from "@/components/widgets/TrackingPixel";
+import { IframeAutoResize } from "@/components/widgets/IframeAutoResize";
 
 // 60s ISR + edge cache; dashboard mutations call invalidateWidget(shareId) for
 // instant freshness when something actually changes.
@@ -49,24 +51,34 @@ export default async function WidgetPage({
   const theme = typeof widget.theme === "object" ? widget.theme : {};
   const layout = typeof widget.layout === "object" ? widget.layout : {};
 
-  switch (widget.template) {
-    case "carousel":
-      return (
-        <CarouselWidget
-          testimonials={testimonials}
-          theme={theme as any}
-          autoRotate={widget.autoRotate}
-          rotateInterval={widget.rotateInterval || 5000}
-        />
-      );
-    case "grid":
-    default:
-      return (
-        <GridWidget
-          testimonials={testimonials}
-          theme={theme as any}
-          columns={(layout as any)?.columns || 3}
-        />
-      );
-  }
+  const body = (() => {
+    switch (widget.template) {
+      case "carousel":
+        return (
+          <CarouselWidget
+            testimonials={testimonials}
+            theme={theme as any}
+            autoRotate={widget.autoRotate}
+            rotateInterval={widget.rotateInterval || 5000}
+          />
+        );
+      case "grid":
+      default:
+        return (
+          <GridWidget
+            testimonials={testimonials}
+            theme={theme as any}
+            columns={(layout as any)?.columns || 3}
+          />
+        );
+    }
+  })();
+
+  return (
+    <>
+      {body}
+      <TrackingPixel type="widget" shareId={shareId} />
+      <IframeAutoResize shareId={shareId} />
+    </>
+  );
 }

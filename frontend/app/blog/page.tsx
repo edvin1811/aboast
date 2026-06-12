@@ -51,7 +51,7 @@ export default async function BlogPage() {
       {/* Posts */}
       <section className="w-full max-w-6xl mx-auto mt-20 px-6">
         {posts.length === 0 ? (
-          <div className="text-center py-24 bg-white border border-border rounded-3xl">
+          <div className="text-center py-24 bg-white border border-border rounded-2xl">
             <p className="text-2xl font-semibold tracking-tight text-foreground mb-2">No posts yet</p>
             <p className="text-muted-foreground">Come back soon — we&apos;re cooking.</p>
           </div>
@@ -61,7 +61,7 @@ export default async function BlogPage() {
             {featured && (
               <Link
                 href={`/blog/${featured.slug}`}
-                className="group block mb-10 rounded-3xl bg-white border border-border overflow-hidden transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_12px_32px_-18px_rgba(15,15,15,0.12)]"
+                className="group block mb-10 rounded-2xl bg-white border border-border overflow-hidden transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_12px_32px_-18px_rgba(15,15,15,0.12)]"
               >
                 <div className="grid md:grid-cols-2">
                   <div className="relative h-72 md:h-full md:min-h-[340px] bg-primary-soft overflow-hidden">
@@ -115,7 +115,7 @@ export default async function BlogPage() {
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
-                    className="group rounded-3xl bg-white border border-border overflow-hidden flex flex-col transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
+                    className="group rounded-2xl bg-white border border-border overflow-hidden flex flex-col transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
                   >
                     <div className="relative h-48 bg-primary-soft overflow-hidden">
                       {post.coverImage ? (
@@ -158,7 +158,7 @@ export default async function BlogPage() {
       {/* Newsletter */}
       <section className="w-full max-w-4xl mx-auto mt-32 px-6 relative">
         <div className="absolute inset-0 bg-primary/[0.08] blur-[100px] rounded-full pointer-events-none" />
-        <div className="relative z-10 bg-white border border-border rounded-[2.5rem] p-12 md:p-16 flex flex-col items-center text-center overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+        <div className="relative z-10 bg-white border border-border rounded-2xl p-12 md:p-16 flex flex-col items-center text-center overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
           <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground leading-[1.1] mb-4">
             Get the next post in your inbox

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
+import { assertCanCreateWorkspace, QuotaError } from "@/lib/quotas";
 
 export async function GET(request: NextRequest) {
   try {
@@ -110,6 +111,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Enforce plan quota (user-level limit on number of workspaces).
+    await assertCanCreateWorkspace(dbUser.id);
+
     // Check if slug is already taken
     const existingWorkspace = await db.workspace.findUnique({
       where: { slug },
@@ -142,6 +146,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(workspace, { status: 201 });
   } catch (error) {
+    if (error instanceof QuotaError) {
+      return NextResponse.json(error.toResponseBody(), { status: 409 });
+    }
     console.error("Error creating workspace:", error);
     return NextResponse.json(
       { error: "Internal server error" },

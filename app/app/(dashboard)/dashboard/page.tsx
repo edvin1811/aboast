@@ -96,14 +96,12 @@ export default async function DashboardPage() {
           return (
             <div
               key={stat.label}
-              className={`relative overflow-hidden rounded-3xl border p-6 transition-all ${
-                featured
-                  ? "bg-white border-primary/30 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(255,89,94,0.20)]"
-                  : "bg-white border-border shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
-              }`}
+              className="relative overflow-hidden rounded-2xl border border-border bg-white p-6 transition-all shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
             >
               {featured && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-primary/[0.08] blur-[40px] rounded-full pointer-events-none" />
+                <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider text-primary bg-primary-soft border border-primary/15">
+                  Live
+                </div>
               )}
               <div className="relative">
                 <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
@@ -130,7 +128,7 @@ export default async function DashboardPage() {
             <Link
               key={href}
               href={href}
-              className="group relative overflow-hidden bg-white border border-border rounded-3xl p-6 transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
+              className="group relative overflow-hidden bg-white border border-border rounded-2xl p-6 transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
             >
               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-primary/[0.05] blur-[50px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative flex items-start justify-between mb-6">

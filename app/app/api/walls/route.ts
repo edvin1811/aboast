@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { getCurrentWorkspace } from "@/lib/workspace";
+import { assertCanCreateWall, QuotaError } from "@/lib/quotas";
 import { randomBytes } from "crypto";
 
 function generateShareId(): string {
@@ -56,6 +57,10 @@ export async function POST(request: NextRequest) {
     }
 
     const workspace = await getCurrentWorkspace(dbUser.id);
+
+    // Enforce plan quota.
+    await assertCanCreateWall(workspace.id);
+
     const body = await request.json();
 
     const {
@@ -114,6 +119,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(wall, { status: 201 });
   } catch (error) {
+    if (error instanceof QuotaError) {
+      return NextResponse.json(error.toResponseBody(), { status: 409 });
+    }
     console.error("Error creating wall:", error);
     return NextResponse.json(
       { error: "Internal server error" },

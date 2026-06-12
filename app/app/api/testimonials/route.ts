@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { invalidateTestimonial } from "@/lib/cache";
+import { assertCanCreateTestimonial, QuotaError } from "@/lib/quotas";
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,6 +74,9 @@ export async function POST(request: NextRequest) {
     // Get current workspace (creates default if none exists)
     const workspace = await getCurrentWorkspace(dbUser.id);
 
+    // Enforce plan quota.
+    await assertCanCreateTestimonial(workspace.id);
+
     // Parse request body
     const body = await request.json();
 
@@ -99,6 +103,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(testimonial, { status: 201 });
   } catch (error) {
+    if (error instanceof QuotaError) {
+      return NextResponse.json(error.toResponseBody(), { status: 409 });
+    }
     console.error("Error creating testimonial:", error);
     return NextResponse.json(
       { error: "Internal server error" },

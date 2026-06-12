@@ -48,7 +48,7 @@ export function GridWidget({
         {testimonials.map((testimonial) => (
           <div
             key={testimonial.id}
-            className="rounded-3xl p-6 border transition-all hover:shadow-[0_8px_24px_-12px_rgba(15,15,15,0.12)]"
+            className="rounded-2xl p-6 border transition-all hover:shadow-[0_8px_24px_-12px_rgba(15,15,15,0.12)]"
             style={{
               backgroundColor,
               borderColor: `${primaryColor}20`,

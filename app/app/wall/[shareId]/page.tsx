@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { Star, Calendar, Building2 } from "lucide-react";
 import { getCachedWall } from "@/lib/public-fetchers";
+import { TrackingPixel } from "@/components/widgets/TrackingPixel";
+import { IframeAutoResize } from "@/components/widgets/IframeAutoResize";
 
 // 60s ISR; dashboard mutations call invalidateWall(shareId) for instant freshness.
 export const revalidate = 60;
@@ -31,7 +33,7 @@ export default async function WallOfLovePage({
 
   if (!payload) notFound();
 
-  const { wall, testimonials } = payload;
+  const { wall, testimonials, ownerPlan } = payload;
   const themeRaw = wall.theme as unknown;
   const theme =
     typeof themeRaw === "string"
@@ -94,7 +96,7 @@ export default async function WallOfLovePage({
                 key={testimonial.id}
                 className="break-inside-avoid mb-6 last:mb-0"
               >
-                <div className="bg-white rounded-3xl p-6 border border-border shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)] h-full flex flex-col">
+                <div className="bg-white rounded-2xl p-6 border border-border shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)] h-full flex flex-col">
                   {wall.showRating && (
                     <div className="flex gap-1 mb-4">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -181,20 +183,24 @@ export default async function WallOfLovePage({
           </div>
         )}
 
-        {/* Footer */}
-        <div className="text-center mt-16 pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            Want a wall like this?{" "}
-            <a
-              href="/"
-              className="font-medium hover:underline"
-              style={{ color: primaryColor }}
-            >
-              Try aboast free
-            </a>
-          </p>
-        </div>
+        {/* Footer — only on FREE-tier workspaces */}
+        {ownerPlan !== "PRO" && (
+          <div className="text-center mt-16 pt-8 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Want a wall like this?{" "}
+              <a
+                href="/"
+                className="font-medium hover:underline"
+                style={{ color: primaryColor }}
+              >
+                Try aboast free
+              </a>
+            </p>
+          </div>
+        )}
       </div>
+      <TrackingPixel type="wall" shareId={shareId} />
+      <IframeAutoResize shareId={shareId} />
     </div>
   );
 }

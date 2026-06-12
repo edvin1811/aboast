@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { getCurrentWorkspace } from "@/lib/workspace";
+import { assertCanCreateWidget, QuotaError } from "@/lib/quotas";
 
 export async function GET(request: NextRequest) {
   try {
@@ -84,6 +85,9 @@ export async function POST(request: NextRequest) {
     const workspace = await getCurrentWorkspace(dbUser.id);
     console.log("[API /api/widgets POST] Workspace for widget creation:", workspace.name, workspace.id);
 
+    // Enforce plan quota.
+    await assertCanCreateWidget(workspace.id);
+
     // Parse request body
     const body = await request.json();
     console.log("[API /api/widgets POST] Request body:", body);
@@ -115,6 +119,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(widget, { status: 201 });
   } catch (error) {
+    if (error instanceof QuotaError) {
+      return NextResponse.json(error.toResponseBody(), { status: 409 });
+    }
     console.error("[API /api/widgets POST] Error creating widget:", error);
     return NextResponse.json(
       { error: "Internal server error" },

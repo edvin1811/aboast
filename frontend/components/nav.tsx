@@ -76,7 +76,7 @@ export default function Nav() {
       </nav>
 
       {open && (
-        <div className="md:hidden mt-3 bg-white/95 backdrop-blur-md border border-border rounded-3xl p-3 shadow-[0_12px_32px_-18px_rgba(15,15,15,0.16)]">
+        <div className="md:hidden mt-3 bg-white/95 backdrop-blur-md border border-border rounded-2xl p-3 shadow-[0_12px_32px_-18px_rgba(15,15,15,0.16)]">
           <div className="flex flex-col">
             {LINKS.map(({ href, label }) => (
               <Link

@@ -23,10 +23,12 @@ export default async function FormsPage() {
         // Get current workspace (from cookie or fallback)
         const workspace = await getCurrentWorkspace(dbUser.id);
 
-        // Get forms for current workspace only
+        // Get forms for current workspace only, with submission counts so
+        // the list rows can render submission rate (submissions / views).
         forms = await db.form.findMany({
           where: { workspaceId: workspace.id },
           orderBy: { createdAt: "desc" },
+          include: { _count: { select: { testimonials: true } } },
         });
       }
     } catch (error) {

@@ -8,9 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useUserPlan } from "@/lib/use-user-plan";
+import {
+  useUpgradeDialog,
+  handleQuotaResponse,
+} from "@/lib/use-upgrade-dialog";
 
 export default function NewTestimonialPage() {
   const router = useRouter();
+  const { refresh: refreshPlan } = useUserPlan();
+  const { showUpgrade } = useUpgradeDialog();
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(5);
 
@@ -39,7 +46,13 @@ export default function NewTestimonialPage() {
         body: JSON.stringify(data),
       });
 
+      if (await handleQuotaResponse(response, showUpgrade)) {
+        setLoading(false);
+        return;
+      }
+
       if (response.ok) {
+        await refreshPlan();
         router.push("/dashboard/testimonials");
         router.refresh();
       } else {

@@ -44,7 +44,7 @@ export default function RootLayout({
         elements: {
           formButtonPrimary:
             "rounded-full shadow-[0_4px_24px_-6px_rgba(255,89,94,0.45)] hover:shadow-[0_6px_28px_-4px_rgba(255,89,94,0.55)]",
-          card: "rounded-3xl border border-border shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]",
+          card: "rounded-2xl border border-border shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]",
           footerActionLink: "text-primary hover:text-primary-hover",
           formFieldInput: "rounded-xl border-border",
         },

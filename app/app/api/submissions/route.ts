@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { invalidateTestimonial } from "@/lib/cache";
 import { rateLimitSubmission } from "@/lib/rate-limit";
+import { assertCanCreateTestimonial, QuotaError } from "@/lib/quotas";
 
 const MAX_BODY_BYTES = 16 * 1024; // 16 KB cap on submission payloads.
 
@@ -50,6 +51,20 @@ export async function POST(request: NextRequest) {
 
     if (!form || !form.isActive) {
       return NextResponse.json({ error: "Form not found" }, { status: 404 });
+    }
+
+    // Enforce workspace testimonial quota. Submitter sees a "closed" message
+    // rather than a paywall — they aren't the customer.
+    try {
+      await assertCanCreateTestimonial(form.workspaceId);
+    } catch (err) {
+      if (err instanceof QuotaError) {
+        return NextResponse.json(
+          { error: "form_closed", reason: "workspace_at_capacity" },
+          { status: 403 }
+        );
+      }
+      throw err;
     }
 
     // Extract data from submission

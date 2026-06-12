@@ -193,7 +193,7 @@ export function WidgetShowcase() {
       {/* Soft primary halo behind */}
       <div className="absolute inset-0 bg-primary/[0.10] blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 bg-white border border-border rounded-[2.5rem] overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+      <div className="relative z-10 bg-white border border-border rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
         {/* Hairlines */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent z-20" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent z-20" />

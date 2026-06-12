@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useUserPlan } from "@/lib/use-user-plan";
+import { useUpgradeDialog } from "@/lib/use-upgrade-dialog";
+import { Lock, Sparkles as SparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -17,9 +21,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Trash2, Code, ChevronDown, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Save, Trash2, Code2 } from "lucide-react";
 import { FormPreview } from "@/components/FormPreview";
+import { EmbedDialog } from "@/components/EmbedDialog";
 
 interface FormField {
   id: string;
@@ -35,6 +39,7 @@ interface Form {
   id: string;
   name: string;
   slug: string;
+  shareId: string | null;
   description: string | null;
   isActive: boolean;
   autoPublish: boolean;
@@ -42,7 +47,14 @@ interface Form {
   fields: FormField[];
 }
 
-export default function FormEditPage({ params }: { params: Promise<{ id: string }> }) {
+const EYEBROW =
+  "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-3";
+
+export default function FormEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,7 +62,6 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
   const [form, setForm] = useState<Form | null>(null);
   const [id, setId] = useState<string>("");
 
-  // Form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [thankYouMessage, setThankYouMessage] = useState(
@@ -60,12 +71,7 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
   const [isActive, setIsActive] = useState(true);
   const [fields, setFields] = useState<FormField[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [showEmbedDialog, setShowEmbedDialog] = useState(false);
-
-  // Section collapse state
-  const [basicInfoOpen, setBasicInfoOpen] = useState(true);
-  const [fieldsOpen, setFieldsOpen] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [embedOpen, setEmbedOpen] = useState(false);
 
   useEffect(() => {
     params.then((p) => {
@@ -77,7 +83,6 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
   const fetchData = async (formId: string) => {
     try {
       const response = await fetch(`/api/forms/${formId}`);
-
       if (response.ok) {
         const formData = await response.json();
         setForm(formData);
@@ -102,7 +107,6 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
     setSaving(true);
     try {
       const enabledFields = fields.filter((f) => f.enabled);
-
       const response = await fetch(`/api/forms/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -115,7 +119,6 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
           isActive,
         }),
       });
-
       if (response.ok) {
         router.push("/dashboard/forms");
         router.refresh();
@@ -133,10 +136,7 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const response = await fetch(`/api/forms/${id}`, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(`/api/forms/${id}`, { method: "DELETE" });
       if (response.ok) {
         router.push("/dashboard/forms");
         router.refresh();
@@ -151,30 +151,24 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  const updateField = (id: string, updates: Partial<FormField>) => {
+  const updateField = (fid: string, updates: Partial<FormField>) => {
     setFields((prev) =>
-      prev.map((field) => (field.id === id ? { ...field, ...updates } : field))
+      prev.map((field) => (field.id === fid ? { ...field, ...updates } : field))
     );
   };
 
-  const toggleField = (id: string) => {
+  const toggleField = (fid: string) => {
     setFields((prev) =>
       prev.map((field) =>
-        field.id === id ? { ...field, enabled: !field.enabled } : field
+        field.id === fid ? { ...field, enabled: !field.enabled } : field
       )
     );
-  };
-
-  const getEmbedCode = () => {
-    if (!form) return "";
-    const baseUrl = window.location.origin;
-    return `<iframe src="${baseUrl}/submit/${form.slug}" width="100%" height="600" frameborder="0"></iframe>`;
   };
 
   if (loading) {
     return (
       <div className="flex h-screen">
-        <div className="w-80 bg-card border-r border-border p-6">
+        <div className="w-72 bg-card border-r border-border p-6">
           <div className="h-6 w-32 bg-muted animate-pulse rounded mb-6" />
           <div className="space-y-4">
             <div className="h-10 bg-muted animate-pulse rounded" />
@@ -188,288 +182,320 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
     );
   }
 
-  if (!form) {
-    return null;
-  }
+  if (!form) return null;
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Left Sidebar */}
-      <div className="w-80 bg-card border-r border-border flex flex-col">
-        <div className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <div className="p-6 border-b border-border">
-            <Link
-              href="/dashboard/forms"
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+      {/* Left editor panel */}
+      <div className="w-[336px] bg-card border-r border-border flex flex-col">
+        {/* Header — navigation chrome only. The Tabs below are the
+            primary "where am I in the editor" indicator. */}
+        <div className="px-5 pt-5 pb-3">
+          <Link
+            href="/dashboard/forms"
+            className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+            Back to forms
+          </Link>
+          <div className="flex items-center gap-2">
+            <h1 className="font-semibold text-foreground text-base truncate flex-1">
+              {name || "Untitled form"}
+            </h1>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
+                isActive
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-neutral-100 text-muted-foreground border border-border"
+              }`}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Forms
-            </Link>
-            <div className="space-y-3">
-              <Label htmlFor="formName" className="text-xs text-muted-foreground">
-                Form Name
-              </Label>
-              <Input
-                id="formName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="font-semibold"
-                placeholder="Form Name"
-              />
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Status</span>
-                <Badge variant={isActive ? "default" : "secondary"} className="text-xs">
-                  {isActive ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-            </div>
+              {isActive ? "Active" : "Inactive"}
+            </span>
           </div>
+        </div>
 
-          {/* Basic Info Section */}
-          <div className="border-b border-border">
-            <button
-              onClick={() => setBasicInfoOpen(!basicInfoOpen)}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
-            >
-              <span className="font-semibold text-sm">Basic Information</span>
-              {basicInfoOpen ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-            {basicInfoOpen && (
-              <div className="px-6 pb-4 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-xs">
-                    Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Help us understand your experience"
-                    rows={3}
-                    className="text-xs"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Shown at the top of the form
-                  </p>
+        {/* Tabs */}
+        <Tabs defaultValue="basic" className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="mx-5 mt-4 grid grid-cols-3">
+            <TabsTrigger value="basic">Basic</TabsTrigger>
+            <TabsTrigger value="fields">Fields</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-y-auto px-5 py-5">
+            <TabsContent value="basic" className="space-y-5 mt-0">
+              <div>
+                <p className={EYEBROW}>Identity</p>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="formName" className="text-xs">
+                      Form name
+                    </Label>
+                    <Input
+                      id="formName"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Customer feedback form"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="description" className="text-xs">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Help us understand your experience"
+                      rows={3}
+                      className="text-xs"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Shown at the top of the form.
+                    </p>
+                  </div>
                 </div>
+              </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <Label htmlFor="active" className="text-xs">
-                    Active
-                  </Label>
+              <div>
+                <p className={EYEBROW}>Visibility</p>
+                <div className="flex items-center justify-between bg-neutral-50 border border-border rounded-lg px-3 py-2.5">
+                  <div>
+                    <Label htmlFor="active" className="text-xs font-medium">
+                      Form is active
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      Customers can submit testimonials.
+                    </p>
+                  </div>
                   <Switch id="active" checked={isActive} onCheckedChange={setIsActive} />
                 </div>
               </div>
-            )}
-          </div>
+            </TabsContent>
 
-          {/* Form Fields Section */}
-          <div className="border-b border-border">
-            <button
-              onClick={() => setFieldsOpen(!fieldsOpen)}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
-            >
-              <span className="font-semibold text-sm">
-                Form Fields ({fields.filter((f) => f.enabled).length})
-              </span>
-              {fieldsOpen ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-            {fieldsOpen && (
-              <div className="px-6 pb-4">
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {fields.map((field) => (
-                    <div
-                      key={field.id}
-                      className={`border border-border rounded-lg p-3 transition ${
-                        field.enabled ? "bg-background" : "bg-muted/50 opacity-60"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <Checkbox
-                          checked={field.enabled}
-                          onCheckedChange={() => toggleField(field.id)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                              <Label className="font-semibold text-xs">{field.name}</Label>
-                              {field.required && field.enabled && (
-                                <span className="text-xs text-destructive">*</span>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground capitalize">
-                              {field.type}
-                            </span>
+            <TabsContent value="fields" className="space-y-3 mt-0">
+              <p className={EYEBROW}>
+                {fields.filter((f) => f.enabled).length} of {fields.length} enabled
+              </p>
+              <div className="space-y-2">
+                {fields.map((field) => (
+                  <div
+                    key={field.id}
+                    className={`border border-border rounded-lg p-3 transition ${
+                      field.enabled ? "bg-card" : "bg-muted/40 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        checked={field.enabled}
+                        onCheckedChange={() => toggleField(field.id)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Label className="font-semibold text-xs">{field.name}</Label>
+                            {field.required && field.enabled && (
+                              <span className="text-xs text-destructive">*</span>
+                            )}
                           </div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                            {field.type}
+                          </span>
+                        </div>
 
-                          {field.enabled && (
-                            <>
-                              <div className="space-y-2">
+                        {field.enabled && (
+                          <>
+                            <div className="space-y-2">
+                              <div className="space-y-1">
+                                <Label htmlFor={`${field.id}-label`} className="text-[11px]">
+                                  Label
+                                </Label>
+                                <Input
+                                  id={`${field.id}-label`}
+                                  value={field.label}
+                                  onChange={(e) =>
+                                    updateField(field.id, { label: e.target.value })
+                                  }
+                                  placeholder="Field label"
+                                  className="text-xs h-8"
+                                />
+                              </div>
+                              {field.type !== "rating" && (
                                 <div className="space-y-1">
-                                  <Label htmlFor={`${field.id}-label`} className="text-xs">
-                                    Label
+                                  <Label
+                                    htmlFor={`${field.id}-placeholder`}
+                                    className="text-[11px]"
+                                  >
+                                    Placeholder
                                   </Label>
                                   <Input
-                                    id={`${field.id}-label`}
-                                    value={field.label}
+                                    id={`${field.id}-placeholder`}
+                                    value={field.placeholder}
                                     onChange={(e) =>
-                                      updateField(field.id, { label: e.target.value })
+                                      updateField(field.id, {
+                                        placeholder: e.target.value,
+                                      })
                                     }
-                                    placeholder="Field label"
+                                    placeholder="Placeholder text"
                                     className="text-xs h-8"
                                   />
                                 </div>
-                                {field.type !== "rating" && (
-                                  <div className="space-y-1">
-                                    <Label htmlFor={`${field.id}-placeholder`} className="text-xs">
-                                      Placeholder
-                                    </Label>
-                                    <Input
-                                      id={`${field.id}-placeholder`}
-                                      value={field.placeholder}
-                                      onChange={(e) =>
-                                        updateField(field.id, {
-                                          placeholder: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Placeholder text"
-                                      className="text-xs h-8"
-                                    />
-                                  </div>
-                                )}
-                              </div>
+                              )}
+                            </div>
 
-                              {field.id !== "content" &&
-                                field.id !== "rating" &&
-                                field.id !== "authorName" && (
-                                  <div className="flex items-center gap-2 pt-1">
-                                    <Checkbox
-                                      id={`${field.id}-required`}
-                                      checked={field.required}
-                                      onCheckedChange={(checked) =>
-                                        updateField(field.id, { required: !!checked })
-                                      }
-                                    />
-                                    <Label
-                                      htmlFor={`${field.id}-required`}
-                                      className="text-xs cursor-pointer"
-                                    >
-                                      Required
-                                    </Label>
-                                  </div>
-                                )}
-                            </>
-                          )}
-                        </div>
+                            {field.id !== "content" &&
+                              field.id !== "rating" &&
+                              field.id !== "authorName" && (
+                                <div className="flex items-center gap-2 pt-1">
+                                  <Checkbox
+                                    id={`${field.id}-required`}
+                                    checked={field.required}
+                                    onCheckedChange={(checked) =>
+                                      updateField(field.id, { required: !!checked })
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor={`${field.id}-required`}
+                                    className="text-[11px] cursor-pointer"
+                                  >
+                                    Required
+                                  </Label>
+                                </div>
+                              )}
+                          </>
+                        )}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-5 mt-0">
+              <div>
+                <p className={EYEBROW}>Submission flow</p>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="thankYouMessage" className="text-xs">
+                      Thank-you message
+                    </Label>
+                    <Textarea
+                      id="thankYouMessage"
+                      value={thankYouMessage}
+                      onChange={(e) => setThankYouMessage(e.target.value)}
+                      rows={3}
+                      placeholder="Thank you for your feedback!"
+                      className="text-xs"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Shown after a customer hits Submit.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-neutral-50 border border-border rounded-lg px-3 py-2.5">
+                    <div>
+                      <Label htmlFor="autoPublish" className="text-xs font-medium">
+                        Auto-publish submissions
+                      </Label>
+                      <p className="text-[11px] text-muted-foreground">
+                        New testimonials skip moderation and appear live immediately.
+                      </p>
+                    </div>
+                    <Switch
+                      id="autoPublish"
+                      checked={autoPublish}
+                      onCheckedChange={setAutoPublish}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Form Settings Section */}
-          <div className="border-b border-border">
-            <button
-              onClick={() => setSettingsOpen(!settingsOpen)}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
-            >
-              <span className="font-semibold text-sm">Form Settings</span>
-              {settingsOpen ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-            {settingsOpen && (
-              <div className="px-6 pb-4 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="thankYouMessage" className="text-xs">
-                    Thank You Message
-                  </Label>
-                  <Textarea
-                    id="thankYouMessage"
-                    value={thankYouMessage}
-                    onChange={(e) => setThankYouMessage(e.target.value)}
-                    rows={3}
-                    placeholder="Thank you for your feedback!"
-                    className="text-xs"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Shown after form submission
+              <div>
+                <p className={EYEBROW}>Branding</p>
+                <BrandingToggle />
+              </div>
+
+              <div>
+                <p className={EYEBROW}>Danger zone</p>
+                <div className="border border-destructive/30 rounded-lg p-3 bg-destructive/5">
+                  <p className="text-xs text-foreground font-medium mb-1">
+                    Delete this form
                   </p>
+                  <p className="text-[11px] text-muted-foreground mb-3">
+                    Permanently removes the form. Submitted testimonials stay in your
+                    workspace.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                    Delete form
+                  </Button>
                 </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <Label htmlFor="autoPublish" className="text-xs">
-                    Auto-publish
-                  </Label>
-                  <Switch
-                    id="autoPublish"
-                    checked={autoPublish}
-                    onCheckedChange={setAutoPublish}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Automatically publish submitted testimonials
-                </p>
               </div>
-            )}
+            </TabsContent>
           </div>
-        </div>
 
-        {/* Actions Footer */}
-        <div className="p-6 border-t border-border space-y-3 bg-card">
-          <Button onClick={handleSave} disabled={saving || !name} className="w-full">
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-          <div className="flex gap-2">
+          {/* Sticky footer — save + share */}
+          <div className="px-5 py-3 border-t border-border bg-card flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowEmbedDialog(true)}
-              className="flex-1 text-xs"
+              onClick={handleSave}
+              disabled={saving || !name}
+              className="flex-1"
             >
-              <Code className="h-3 w-3 mr-1" />
-              Get Code
+              <Save className="h-4 w-4 mr-1.5" />
+              {saving ? "Saving…" : "Save"}
             </Button>
             <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setDeleteDialogOpen(true)}
-              className="flex-1 text-xs"
+              onClick={() => setEmbedOpen(true)}
+              disabled={!form.shareId}
+              variant="outline"
+              className="flex-1"
+              title={form.shareId ? "Get embed code" : "Save the form first to get an embed code"}
             >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Delete
+              <Code2 className="h-4 w-4 mr-1.5" strokeWidth={1.75} />
+              Get code
             </Button>
           </div>
-        </div>
+        </Tabs>
       </div>
 
-      {/* Right Preview Panel */}
-      <div className="flex-1 bg-neutral-50 overflow-y-auto">
-        <div className="p-8">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-foreground mb-1">Live Preview</h2>
-            <p className="text-sm text-muted-foreground">
-              See how your form will look
-            </p>
+      {/* Right preview panel */}
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{
+          backgroundColor: "#fafaf7",
+          backgroundImage:
+            "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      >
+        <div className="p-8 md:p-12">
+          <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className={EYEBROW.replace("mb-3", "mb-1")}>Live preview</p>
+              <p className="text-sm text-muted-foreground">
+                See how your form will look to customers.
+              </p>
+            </div>
+            {form.shareId && (
+              <a
+                href={`/submit/${form.shareId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Open public page ↗
+              </a>
+            )}
           </div>
-          <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
             <FormPreview
-              formName={name || "Your Form Name"}
+              formName={name}
               description={description}
               fields={fields}
             />
@@ -477,14 +503,14 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
         </div>
       </div>
 
-      {/* Delete Dialog */}
+      {/* Delete confirm */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Form</DialogTitle>
+            <DialogTitle>Delete form</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this form? This action cannot be undone
-              and will prevent new testimonial submissions.
+              This permanently removes the form. Submitted testimonials remain in
+              your workspace.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -495,39 +521,69 @@ export default function FormEditPage({ params }: { params: Promise<{ id: string 
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Deleting..." : "Delete Form"}
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting…" : "Delete form"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Embed Code Dialog */}
-      <Dialog open={showEmbedDialog} onOpenChange={setShowEmbedDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Embed Code</DialogTitle>
-            <DialogDescription>
-              Copy this code and paste it into your website where you want the form to
-              appear
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
-              {getEmbedCode()}
-            </div>
-            <Button
-              onClick={() => {
-                navigator.clipboard.writeText(getEmbedCode());
-                alert("Copied to clipboard!");
-              }}
-              className="w-full"
-            >
-              Copy to Clipboard
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Embed code */}
+      {form.shareId && (
+        <EmbedDialog
+          open={embedOpen}
+          onOpenChange={setEmbedOpen}
+          shareId={form.shareId}
+          kind="form"
+        />
+      )}
+    </div>
+  );
+}
+
+function BrandingToggle() {
+  const { data } = useUserPlan();
+  const { showUpgrade } = useUpgradeDialog();
+  const isPro = data?.plan === "PRO";
+
+  return (
+    <div className="flex items-center justify-between bg-neutral-50 border border-border rounded-lg px-3 py-2.5">
+      <div className="flex items-start gap-2.5">
+        {!isPro && (
+          <Lock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+        )}
+        <div>
+          <p className="text-xs font-medium text-foreground">
+            Remove &ldquo;Powered by aboast&rdquo;
+            {!isPro && (
+              <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary-soft px-1.5 py-0.5 rounded-md align-middle">
+                Pro
+              </span>
+            )}
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            {isPro
+              ? "The watermark is hidden on all your forms automatically."
+              : "Hide the watermark on your public submit pages on Pro."}
+          </p>
+        </div>
+      </div>
+      {!isPro && (
+        <button
+          type="button"
+          onClick={() =>
+            showUpgrade({ kind: "premium_feature", resource: "branding" })
+          }
+          className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          <SparklesIcon className="h-3 w-3" strokeWidth={2} />
+          Upgrade
+        </button>
+      )}
     </div>
   );
 }

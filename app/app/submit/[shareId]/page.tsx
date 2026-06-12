@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, CheckCircle2, ArrowRight } from "lucide-react";
+import { TrackingPixel } from "@/components/widgets/TrackingPixel";
+import { IframeAutoResize } from "@/components/widgets/IframeAutoResize";
 
 interface FormField {
   id: string;
@@ -25,15 +27,29 @@ interface Form {
   fields: FormField[];
   thankYouMessage: string;
   isActive: boolean;
+  ownerPlan?: "FREE" | "PRO";
+  isClosed?: boolean;
 }
 
-function PageShell({ children }: { children: React.ReactNode }) {
+function PageShell({
+  children,
+  shareId,
+}: {
+  children: React.ReactNode;
+  shareId?: string;
+}) {
   return (
     <div className="relative min-h-screen">
       <div className="page-wash" aria-hidden="true" />
       <div className="relative z-10 flex flex-col items-center px-6 py-16 md:py-24">
         {children}
       </div>
+      {shareId && (
+        <>
+          <TrackingPixel type="form" shareId={shareId} />
+          <IframeAutoResize shareId={shareId} />
+        </>
+      )}
     </div>
   );
 }
@@ -103,9 +119,9 @@ export default function SubmitFormPage({ params }: { params: Promise<{ shareId: 
 
   if (loading) {
     return (
-      <PageShell>
+      <PageShell shareId={shareId}>
         <div className="w-full max-w-2xl">
-          <div className="bg-white border border-border rounded-3xl p-8 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+          <div className="bg-white border border-border rounded-2xl p-8 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
             <div className="h-8 w-64 bg-neutral-100 animate-pulse rounded mb-4" />
             <div className="h-4 w-full bg-neutral-100 animate-pulse rounded mb-2" />
             <div className="h-4 w-3/4 bg-neutral-100 animate-pulse rounded" />
@@ -117,9 +133,9 @@ export default function SubmitFormPage({ params }: { params: Promise<{ shareId: 
 
   if (!form || !form.isActive) {
     return (
-      <PageShell>
+      <PageShell shareId={shareId}>
         <div className="w-full max-w-2xl text-center">
-          <div className="bg-white border border-border rounded-3xl p-12 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+          <div className="bg-white border border-border rounded-2xl p-12 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
               This form is no longer{" "}
               <span className="font-serif italic text-primary">available</span>.
@@ -131,11 +147,34 @@ export default function SubmitFormPage({ params }: { params: Promise<{ shareId: 
     );
   }
 
+  if (form.isClosed) {
+    return (
+      <PageShell shareId={shareId}>
+        <div className="w-full max-w-2xl text-center">
+          <div className="bg-white border border-border rounded-2xl p-12 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+              This form is currently{" "}
+              <span className="font-serif italic text-primary">closed</span>.
+            </h2>
+            <p className="text-muted-foreground">
+              We&rsquo;re not collecting new responses right now — check back soon.
+            </p>
+          </div>
+          {form.ownerPlan !== "PRO" && (
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              Powered by aboast
+            </p>
+          )}
+        </div>
+      </PageShell>
+    );
+  }
+
   if (submitted) {
     return (
-      <PageShell>
+      <PageShell shareId={shareId}>
         <div className="w-full max-w-2xl text-center">
-          <div className="relative bg-white border border-border rounded-3xl p-12 md:p-16 overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+          <div className="relative bg-white border border-border rounded-2xl p-12 md:p-16 overflow-hidden shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
             <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             <div className="w-16 h-16 mx-auto rounded-2xl bg-primary-soft border border-primary/30 grid place-items-center text-primary shadow-[0_0_30px_rgba(255,89,94,0.18)] mb-6">
               <CheckCircle2 className="h-7 w-7" strokeWidth={1.75} />
@@ -154,7 +193,7 @@ export default function SubmitFormPage({ params }: { params: Promise<{ shareId: 
   }
 
   return (
-    <PageShell>
+    <PageShell shareId={shareId}>
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -173,7 +212,7 @@ export default function SubmitFormPage({ params }: { params: Promise<{ shareId: 
         </div>
 
         {/* Form card */}
-        <div className="bg-white border border-border rounded-3xl p-8 md:p-10 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
+        <div className="bg-white border border-border rounded-2xl p-8 md:p-10 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_24px_48px_-24px_rgba(15,15,15,0.16)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             {form.fields.map((field) => {
               if (field.name === "rating") {
@@ -257,9 +296,11 @@ export default function SubmitFormPage({ params }: { params: Promise<{ shareId: 
           </form>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Powered by aboast
-        </p>
+        {form.ownerPlan !== "PRO" && (
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Powered by aboast
+          </p>
+        )}
       </div>
     </PageShell>
   );

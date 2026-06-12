@@ -152,7 +152,7 @@ export function WallsClient({ walls, testimonialsCount }: WallsClientProps) {
       />
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="relative overflow-hidden bg-white border border-primary/30 rounded-3xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(255,89,94,0.20)]">
+        <div className="relative overflow-hidden bg-white border border-border rounded-2xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-primary/[0.08] blur-[40px] rounded-full pointer-events-none" />
           <div className="relative">
             <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
@@ -164,7 +164,7 @@ export function WallsClient({ walls, testimonialsCount }: WallsClientProps) {
             <div className="mt-2 text-sm text-muted-foreground">total walls created</div>
           </div>
         </div>
-        <div className="bg-white border border-border rounded-3xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
+        <div className="bg-white border border-border rounded-2xl p-6 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
           <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
             Published testimonials
           </div>
@@ -176,7 +176,7 @@ export function WallsClient({ walls, testimonialsCount }: WallsClientProps) {
       </section>
 
       {walls.length === 0 ? (
-        <div className="bg-white border border-border rounded-3xl p-16 text-center shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
+        <div className="bg-white border border-border rounded-2xl p-16 text-center shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]">
           <div className="w-14 h-14 mx-auto mb-6 bg-primary-soft border border-primary/30 rounded-2xl flex items-center justify-center text-primary">
             <Sparkles className="h-6 w-6" strokeWidth={1.75} />
           </div>
@@ -196,7 +196,7 @@ export function WallsClient({ walls, testimonialsCount }: WallsClientProps) {
           {walls.map((wall) => (
             <div
               key={wall.id}
-              className="bg-white border border-border rounded-3xl p-6 transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
+              className="bg-white border border-border rounded-2xl p-6 transition-all hover:border-neutral-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
             >
               <div className="flex items-start justify-between mb-4 gap-3">
                 <div className="flex-1 min-w-0">

@@ -9,7 +9,13 @@ const TIERS = [
     price: "$0",
     suffix: "forever",
     description: "For founders shipping their first wall of love.",
-    features: ["Up to 20 testimonials", "1 collection page", "All widget styles", "Aboast watermark"],
+    features: [
+      "1 workspace",
+      "1 form, 1 widget, 1 wall",
+      "20 testimonials per workspace",
+      "All widget styles",
+      '"Powered by aboast" watermark',
+    ],
     cta: "Start free",
     href: `${SAAS_URL}/sign-up`,
     featured: false,
@@ -18,21 +24,17 @@ const TIERS = [
     name: "Pro",
     price: "$19",
     suffix: "/ month",
-    description: "For teams growing through social proof.",
-    features: ["Unlimited testimonials", "Unlimited collection pages", "Remove watermark", "Video testimonials", "Custom branding"],
-    cta: "Start 14-day trial",
-    href: `${SAAS_URL}/sign-up?plan=pro`,
+    description: "For SaaS founders shipping social proof on every page.",
+    features: [
+      "3 workspaces",
+      "Unlimited forms, widgets, and walls",
+      "Unlimited testimonials",
+      "No watermark anywhere",
+      "Video testimonials, CSV export, custom domains",
+    ],
+    cta: "Upgrade to Pro",
+    href: `${SAAS_URL}/dashboard/billing`,
     featured: true,
-  },
-  {
-    name: "Business",
-    price: "$49",
-    suffix: "/ month",
-    description: "For teams shipping social proof at scale.",
-    features: ["Everything in Pro", "5 team seats", "API access", "Priority support", "SSO + audit log"],
-    cta: "Start trial",
-    href: `${SAAS_URL}/sign-up?plan=business`,
-    featured: false,
   },
 ];
 
@@ -49,12 +51,12 @@ export function PricingMini() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {TIERS.map((tier) => (
           <div
             key={tier.name}
             className={cn(
-              "relative rounded-3xl p-8 flex flex-col transition-all",
+              "relative rounded-2xl p-8 flex flex-col transition-all",
               tier.featured
                 ? "bg-foreground text-white border border-foreground shadow-[0_24px_48px_-24px_rgba(15,15,15,0.30)]"
                 : "bg-white border border-border shadow-[0_1px_2px_rgba(15,15,15,0.04),0_8px_24px_-12px_rgba(15,15,15,0.08)]"
