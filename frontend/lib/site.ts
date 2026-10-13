@@ -3,7 +3,11 @@
 
 /** www is the host that serves the site (aboast.com redirects to it), so it's
  *  the one canonicals, the sitemap and JSON-LD point at. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://www.aboast.com").replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://www.aboast.com")
+  .replace(/\/$/, "")
+  // The Vercel project has NEXT_PUBLIC_APP_URL=https://aboast.com, which only
+  // redirects to www; canonicals must name the host that actually serves.
+  .replace(/^https:\/\/aboast\.com$/, "https://www.aboast.com");
 export const APP_URL = process.env.NEXT_PUBLIC_SAAS_URL ?? "https://app.aboast.com";
 
 export const SIGN_UP_URL = `${APP_URL}/sign-up`;
