@@ -7,7 +7,7 @@ const BRAND_RED_DARK = "#ec4046";
 const CARD_DARK = "#0f0f0f";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
+  const { searchParams, origin } = new URL(req.url);
   const title = (searchParams.get("title") ?? "aboast").slice(0, 140);
   const tag = (searchParams.get("tag") ?? "BLOG").slice(0, 24).toUpperCase();
 
@@ -84,7 +84,7 @@ export async function GET(req: Request) {
             gap: 14,
           }}
         >
-          <Logomark />
+          <Logomark src={`${origin}/logo-color.svg`} />
           <div
             style={{
               color: "white",
@@ -155,7 +155,7 @@ export async function GET(req: Request) {
 
 /* ---------- Inline SVG decorations ---------- */
 
-function Logomark() {
+function Logomark({ src }: { src: string }) {
   return (
     <div
       style={{
@@ -172,7 +172,7 @@ function Logomark() {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="https://www.aboast.com/logo-color.svg"
+        src={src}
         alt="aboast"
         width={36}
         height={36}

@@ -1,0 +1,51 @@
+[
+  {
+    "name": "best-moments",
+    "type": "tiles",
+    "label": "When to ask",
+    "tiles": [
+      {
+        "title": "Trial converts to paid",
+        "body": "They just decided you're worth money.",
+        "icon": "zap"
+      },
+      {
+        "title": "First real result",
+        "body": "First report, first campaign, first integration live.",
+        "icon": "trend"
+      },
+      {
+        "title": "Support solved fast",
+        "body": "Goodwill peaks right after a great support experience.",
+        "icon": "comment"
+      },
+      {
+        "title": "Renewal or upgrade",
+        "body": "They just voted with their wallet again.",
+        "icon": "repeat"
+      }
+    ]
+  },
+  {
+    "name": "setup",
+    "type": "steps",
+    "label": "Set it up once",
+    "steps": [
+      {
+        "title": "Create a form",
+        "body": "Your own questions, a star rating, no login.",
+        "icon": "form"
+      },
+      {
+        "title": "Add the link",
+        "body": "Put it in your email tool's upgrade automation.",
+        "icon": "mail"
+      },
+      {
+        "title": "Approve and embed",
+        "body": "Review what comes in and show it on your site.",
+        "icon": "grid"
+      }
+    ]
+  }
+]

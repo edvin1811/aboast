@@ -1,0 +1,59 @@
+[
+  {
+    "name": "wall-sample",
+    "type": "quotes",
+    "label": "A mix of sources",
+    "quotes": [
+      {
+        "text": "Ordered on Monday, it arrived Wednesday, and the fit is perfect. Already ordered a second one.",
+        "name": "Jonas Ek",
+        "role": "Customer",
+        "source": "form"
+      },
+      {
+        "text": "Friendly, fast and they actually explained what they changed. Will be back.",
+        "name": "Rita M.",
+        "stars": 5,
+        "source": "google"
+      },
+      {
+        "text": "Honestly the easiest part of our launch. Thank you for making it painless!",
+        "name": "Lena Park",
+        "role": "PM, Brightloop",
+        "source": "email"
+      }
+    ]
+  },
+  {
+    "name": "afternoon-plan",
+    "type": "steps",
+    "label": "One afternoon",
+    "steps": [
+      {
+        "title": "Gather what you have",
+        "body": "Inbox, support tool, Slack and social mentions.",
+        "icon": "search"
+      },
+      {
+        "title": "Ask for permission",
+        "body": "Can we feature what you said, with your name?",
+        "icon": "shield"
+      },
+      {
+        "title": "Fill the gaps",
+        "body": "Send a collection link to recently happy customers.",
+        "icon": "send"
+      },
+      {
+        "title": "Choose a layout",
+        "body": "Masonry, grid, or a list for phones.",
+        "icon": "grid"
+      },
+      {
+        "title": "Publish and link to it",
+        "body": "Footer, pricing page and sales emails.",
+        "icon": "link"
+      }
+    ]
+  }
+]

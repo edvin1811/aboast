@@ -1,0 +1,57 @@
+[
+  {
+    "name": "seven-spots",
+    "type": "steps",
+    "label": "Seven spots",
+    "steps": [
+      {
+        "title": "Under the hero button",
+        "body": "A rating badge or one short quote.",
+        "icon": "star"
+      },
+      {
+        "title": "Next to each feature",
+        "body": "A quote about that exact feature.",
+        "icon": "sparkles"
+      },
+      {
+        "title": "Beside the pricing table",
+        "body": "Quotes about value, one per plan.",
+        "icon": "tag"
+      },
+      {
+        "title": "Next to the signup form",
+        "body": "A quote about how easy setup was.",
+        "icon": "form"
+      },
+      {
+        "title": "In or after the FAQ",
+        "body": "Quotes from customers like the visitor.",
+        "icon": "comment"
+      },
+      {
+        "title": "Before the final button",
+        "body": "Many short quotes at once.",
+        "icon": "grid"
+      },
+      {
+        "title": "On its own page",
+        "body": "A full wall of love, linked from everywhere.",
+        "icon": "heart"
+      }
+    ]
+  },
+  {
+    "name": "feature-quote",
+    "type": "quotes",
+    "label": "Next to a feature",
+    "quotes": [
+      {
+        "text": "Our customers fill it in on their phone in the checkout line.",
+        "name": "Maya Lind",
+        "role": "Owner, Fernwood Café",
+        "source": "form"
+      }
+    ]
+  }
+]

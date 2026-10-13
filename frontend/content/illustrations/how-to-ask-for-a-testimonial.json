@@ -1,0 +1,47 @@
+[
+  {
+    "name": "five-parts",
+    "type": "steps",
+    "label": "The short version",
+    "steps": [
+      {
+        "title": "The right moment",
+        "body": "Right after the customer got what they wanted.",
+        "icon": "clock"
+      },
+      {
+        "title": "A personal sender",
+        "body": "A named person, not a no-reply address.",
+        "icon": "users"
+      },
+      {
+        "title": "A specific hook",
+        "body": "Something they actually did or said.",
+        "icon": "target"
+      },
+      {
+        "title": "Prompts, not a blank box",
+        "body": "Two or three questions that make it easy.",
+        "icon": "form"
+      },
+      {
+        "title": "One link, one action",
+        "body": "No account, no login, no choosing sites.",
+        "icon": "link"
+      }
+    ]
+  },
+  {
+    "name": "post-trial-email",
+    "type": "email",
+    "label": "After a trial converts",
+    "from": "Edvin, founder",
+    "subject": "Quick question",
+    "body": [
+      "Hi Sam, thanks for upgrading! I'm curious — what made you decide to go paid?",
+      "If you're up for it, your answer would make a great short testimonial for our site.",
+      "No worries either way. — Edvin"
+    ],
+    "button": "Answer in about a minute"
+  }
+]

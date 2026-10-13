@@ -1,0 +1,83 @@
+[
+  {
+    "name": "compare",
+    "type": "compare",
+    "label": "At a glance",
+    "columns": [
+      {
+        "name": "Text",
+        "note": "Quotes on the page"
+      },
+      {
+        "name": "Video",
+        "note": "A face and a voice"
+      }
+    ],
+    "rows": [
+      {
+        "label": "Effort for the customer",
+        "values": [
+          "A minute on any device",
+          "Record, maybe retake"
+        ]
+      },
+      {
+        "label": "How many you'll get",
+        "values": [
+          "Many",
+          "Few"
+        ]
+      },
+      {
+        "label": "Skimmable",
+        "values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "label": "Searchable by Google",
+        "values": [
+          "yes",
+          "Only with a transcript"
+        ]
+      },
+      {
+        "label": "Hard to fake",
+        "values": [
+          "no",
+          "yes"
+        ]
+      },
+      {
+        "label": "Page weight",
+        "values": [
+          "Light",
+          "Heavy unless click to load"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "video-prompts",
+    "type": "steps",
+    "label": "45-second video",
+    "steps": [
+      {
+        "title": "Before",
+        "body": "What were you dealing with before?",
+        "icon": "clock"
+      },
+      {
+        "title": "After",
+        "body": "What's different now?",
+        "icon": "sparkles"
+      },
+      {
+        "title": "Who it's for",
+        "body": "Who would you recommend it to?",
+        "icon": "users"
+      }
+    ]
+  }
+]

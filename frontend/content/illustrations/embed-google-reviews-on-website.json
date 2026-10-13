@@ -1,0 +1,59 @@
+[
+  {
+    "name": "widget-steps",
+    "type": "steps",
+    "label": "With a widget",
+    "steps": [
+      {
+        "title": "Import",
+        "body": "Search for your business and import its reviews.",
+        "icon": "search"
+      },
+      {
+        "title": "Fill gaps",
+        "body": "Add a specific older review by hand.",
+        "icon": "write"
+      },
+      {
+        "title": "Choose",
+        "body": "Publish the reviews you want to show.",
+        "icon": "check"
+      },
+      {
+        "title": "Pick a layout",
+        "body": "Grid, carousel, marquee or a rating badge.",
+        "icon": "grid"
+      },
+      {
+        "title": "Embed",
+        "body": "Paste one snippet into your site.",
+        "icon": "code"
+      }
+    ]
+  },
+  {
+    "name": "reviews-to-show",
+    "type": "quotes",
+    "label": "Reviews worth showing",
+    "quotes": [
+      {
+        "text": "Fixed our leak the same afternoon and explained everything before starting.",
+        "name": "Dana K.",
+        "stars": 5,
+        "source": "google"
+      },
+      {
+        "text": "Booked online, the price matched the quote and they cleaned up after.",
+        "name": "Marcus O.",
+        "stars": 5,
+        "source": "google"
+      },
+      {
+        "text": "Took a few days longer than planned, but they kept us updated. Great result.",
+        "name": "Sofia L.",
+        "stars": 4,
+        "source": "google"
+      }
+    ]
+  }
+]
