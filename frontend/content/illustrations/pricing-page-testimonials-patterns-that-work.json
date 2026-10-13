@@ -1,0 +1,51 @@
+[
+  {
+    "name": "price-quotes",
+    "type": "quotes",
+    "label": "Quotes that answer price",
+    "quotes": [
+      {
+        "text": "I almost went with the cheaper option. Glad I didn't — the difference in results was obvious.",
+        "name": "Priya Shah",
+        "role": "Head of Growth, Northwind"
+      },
+      {
+        "text": "We were on another tool for two years. Moved six months ago and haven't looked back.",
+        "name": "Tom Berg",
+        "role": "Founder, Loopwise"
+      },
+      {
+        "text": "I wasn't sure it was worth the price. After two weeks it was paying for itself.",
+        "name": "Ana Ruiz",
+        "role": "Marketing lead, Fieldnote"
+      }
+    ]
+  },
+  {
+    "name": "anti-patterns",
+    "type": "tiles",
+    "label": "Drop these",
+    "tiles": [
+      {
+        "title": "The carousel nobody clicks",
+        "body": "Few visitors wait for slide three. Show your best three at once.",
+        "icon": "repeat"
+      },
+      {
+        "title": "The anonymous quote",
+        "body": "No name, no photo, no company means no trust.",
+        "icon": "users"
+      },
+      {
+        "title": "The graveyard at the bottom",
+        "body": "Twelve quotes below the FAQ that nobody scrolls to.",
+        "icon": "layers"
+      },
+      {
+        "title": "The feature quote",
+        "body": "On a pricing page, visitors need quotes about value.",
+        "icon": "tag"
+      }
+    ]
+  }
+]

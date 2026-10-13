@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
+import { ogImage, RSS } from "@/lib/seo";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -17,9 +19,15 @@ const fraunces = Fraunces({
   axes: ["SOFT"],
 });
 
+const DESCRIPTION = "Collect testimonials with a simple form, import reviews from Google and Trustpilot, and embed them on your site with beautiful widgets.";
+
 export const metadata: Metadata = {
-  title: "Aboast — Collect and display testimonials",
-  description: "Gather, manage, and display testimonials with beautiful widgets",
+  metadataBase: new URL(SITE_URL),
+  title: { default: "Aboast — Collect and display testimonials", template: "%s | Aboast" },
+  description: DESCRIPTION,
+  alternates: { types: RSS },
+  openGraph: { type: "website", siteName: "Aboast", title: "Aboast — Collect and display testimonials", description: DESCRIPTION, url: "/", images: [ogImage("Turn customer love into your best sales tool")] },
+  twitter: { card: "summary_large_image", title: "Aboast — Collect and display testimonials", description: DESCRIPTION, images: [ogImage("Turn customer love into your best sales tool")] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

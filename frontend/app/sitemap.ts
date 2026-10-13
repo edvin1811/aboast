@@ -1,29 +1,19 @@
-import { getAllPosts } from '@/lib/strapi';
-import type { MetadataRoute } from 'next';
+import { getAllPosts } from "@/lib/blog";
+import { SITE_URL } from "@/lib/site";
+import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Strapi may be unreachable during build (build server can't reach a
-  // localhost CMS, or Strapi isn't deployed yet). Don't fail the whole
-  // build for the sitemap — just skip blog entries.
-  let posts: Awaited<ReturnType<typeof getAllPosts>> = [];
-  try {
-    posts = await getAllPosts();
-  } catch {
-    posts = [];
-  }
-
-  const blogEntries = posts.map((post) => ({
-    url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
+export default function sitemap(): MetadataRoute.Sitemap {
+  const posts = getAllPosts();
+  const latest = posts[0] ? new Date(posts[0].updated ?? posts[0].date) : new Date();
 
   return [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: 'monthly', priority: 1 },
-    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    ...blogEntries,
+    { url: SITE_URL, lastModified: latest, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/blog`, lastModified: latest, changeFrequency: "daily", priority: 0.8 },
+    ...posts.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.updated ?? post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
   ];
 }

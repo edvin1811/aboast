@@ -1,41 +1,12 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PLANS } from "@/lib/site";
 
 const SAAS_URL = process.env.NEXT_PUBLIC_SAAS_URL ?? "https://app.aboast.com";
 
 const TIERS = [
-  {
-    name: "Free",
-    price: "$0",
-    suffix: "forever",
-    description: "For founders shipping their first wall of love.",
-    features: [
-      "1 workspace",
-      "1 form, 1 widget, 1 wall",
-      "20 testimonials per workspace",
-      "All widget styles",
-      '"Powered by aboast" watermark',
-    ],
-    cta: "Start free",
-    href: `${SAAS_URL}/sign-up`,
-    featured: false,
-  },
-  {
-    name: "Pro",
-    price: "$19",
-    suffix: "/ month",
-    description: "For SaaS founders shipping social proof on every page.",
-    features: [
-      "3 workspaces",
-      "Unlimited forms, widgets, and walls",
-      "Unlimited testimonials",
-      "No watermark anywhere",
-      "Video testimonials, CSV export, custom domains",
-    ],
-    cta: "Upgrade to Pro",
-    href: `${SAAS_URL}/dashboard/billing`,
-    featured: true,
-  },
+  { ...PLANS[0], cta: "Start free", href: `${SAAS_URL}/sign-up`, featured: false },
+  { ...PLANS[1], cta: "Upgrade to Pro", href: `${SAAS_URL}/dashboard/billing`, featured: true },
 ];
 
 export function PricingMini() {

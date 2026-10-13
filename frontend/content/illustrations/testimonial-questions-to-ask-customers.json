@@ -1,0 +1,51 @@
+[
+  {
+    "name": "before-after-proof",
+    "type": "steps",
+    "label": "The structure",
+    "steps": [
+      {
+        "title": "Before",
+        "body": "What were you doing before you found us?",
+        "icon": "clock"
+      },
+      {
+        "title": "After",
+        "body": "What's different now that you use us?",
+        "icon": "sparkles"
+      },
+      {
+        "title": "Proof",
+        "body": "What's one thing you can do now that you couldn't?",
+        "icon": "check"
+      }
+    ]
+  },
+  {
+    "name": "questions-to-avoid",
+    "type": "tiles",
+    "label": "Avoid these",
+    "tiles": [
+      {
+        "title": "Yes or no questions",
+        "body": "\"Would you recommend us?\" gets \"Yes.\" Ask who, and why.",
+        "icon": "thumbs"
+      },
+      {
+        "title": "Leading questions",
+        "body": "\"How much has our amazing support helped?\" sounds coached.",
+        "icon": "megaphone"
+      },
+      {
+        "title": "Double questions",
+        "body": "Asking for praise and improvements at once splits the answer.",
+        "icon": "layers"
+      },
+      {
+        "title": "Jargon",
+        "body": "Stiff questions get answers in the same stiff language.",
+        "icon": "write"
+      }
+    ]
+  }
+]

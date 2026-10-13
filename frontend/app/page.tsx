@@ -9,6 +9,12 @@ import { WidgetShowcase } from "@/components/sections/widget-showcase";
 import { CTABox } from "@/components/sections/cta-box";
 import { TrustedBy } from "@/components/sections/trusted-by";
 import { PricingMini } from "@/components/sections/pricing-mini";
+import type { Metadata } from "next";
+import { RSS } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/", types: RSS },
+};
 
 export default function HomePage() {
   return (

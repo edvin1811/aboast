@@ -1,0 +1,30 @@
+[
+  {
+    "name": "short-email",
+    "type": "email",
+    "label": "Short and specific",
+    "from": "Edvin, founder",
+    "subject": "Quick question about your experience",
+    "body": [
+      "Hey Sam, saw you just hit your first 100 signups — that's great.",
+      "Would you be up for leaving a quick testimonial? Takes under a minute.",
+      "No pressure at all if now's not a good time."
+    ],
+    "button": "Share your experience"
+  },
+  {
+    "name": "before-you-send",
+    "type": "checklist",
+    "label": "Checklist",
+    "title": "Before you hit send",
+    "items": [
+      "Sent right after a recent win",
+      "From a real person, not no-reply",
+      "Mentions something they actually did",
+      "One ask and one link",
+      "Link in the first four lines",
+      "Says it takes under a minute",
+      "Gives an easy way to say not now"
+    ]
+  }
+]

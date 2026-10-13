@@ -1,0 +1,56 @@
+[
+  {
+    "name": "structure",
+    "type": "steps",
+    "label": "Structure",
+    "steps": [
+      {
+        "title": "Challenge",
+        "body": "Name the real situation, not the category.",
+        "icon": "target"
+      },
+      {
+        "title": "Solution",
+        "body": "Show what they set up and what changed.",
+        "icon": "idea"
+      },
+      {
+        "title": "Results",
+        "body": "Anchor every number in what it changed.",
+        "icon": "trend"
+      }
+    ]
+  },
+  {
+    "name": "one-interview",
+    "type": "fanout",
+    "label": "Use it more than once",
+    "source": {
+      "title": "One customer interview",
+      "body": "30 minutes of the customer in their own words.",
+      "icon": "mic"
+    },
+    "outputs": [
+      {
+        "label": "The full case study",
+        "icon": "write"
+      },
+      {
+        "label": "A pull quote for your pricing page",
+        "icon": "quote"
+      },
+      {
+        "label": "A LinkedIn post in the customer's voice",
+        "icon": "megaphone"
+      },
+      {
+        "label": "A snippet for sales emails",
+        "icon": "mail"
+      },
+      {
+        "label": "A short video script",
+        "icon": "video"
+      }
+    ]
+  }
+]

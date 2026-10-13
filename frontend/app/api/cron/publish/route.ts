@@ -1,437 +1,168 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { getAllPosts, serializePost, type BlogPost } from "@/lib/blog";
+import { buildRetryHint, internalLinks, pickTopic, POST_SCHEMA, stripUnknownLinks, SYSTEM_PROMPT, tidyMarkdown, validate, type Draft } from "@/lib/blog-writer";
+
+/**
+ * A blog post written by Claude and published by committing a Markdown file
+ * to content/blog in the GitHub repo. The push triggers a Vercel deploy, so
+ * the post is live a couple of minutes later as a static page — no CMS.
+ *
+ * On demand only: there is no schedule, so posts go up when someone chooses
+ * to (add a cron to vercel.json to change that). Call it with the CRON_SECRET
+ * as a bearer token, or add posts to content/blog by hand.
+ *
+ * Env: ANTHROPIC_API_KEY, CRON_SECRET, GITHUB_TOKEN (fine-grained, Contents
+ * read/write on the repo). Optional: BLOG_REPO (owner/name), BLOG_BRANCH,
+ * BLOG_PATH. Add ?dry=1 to get the draft back without committing, and
+ * ?topic=... to write about something specific.
+ */
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL!;
-const STRAPI_TOKEN = process.env.STRAPI_TOKEN!;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
-const MODEL = "claude-sonnet-4-6";
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const BLOG_REPO = process.env.BLOG_REPO || "edvin1811/aboast";
+const BLOG_BRANCH = process.env.BLOG_BRANCH || "main";
+const BLOG_PATH = process.env.BLOG_PATH || "frontend/content/blog";
+const MODEL = "claude-opus-5-5";
 
-/**
- * 30+ seed topics covering aboast's SEO clusters. Daily cron rotates
- * deterministically by day-of-epoch so no repeat within 30 days. Edit
- * freely — add more for longer rotation, reorder to change ordering.
- */
-const TOPICS = [
-  "How to collect customer testimonials without feeling awkward",
-  "Wall of love best practices for SaaS landing pages",
-  "Video testimonials vs written testimonials: real conversion data",
-  "Embedding testimonials in Next.js without slowing your site",
-  "Testimonial widget A/B testing: what actually moves trial signups",
-  "Writing case studies for B2B SaaS that don't put readers to sleep",
-  "Schema markup for review stars: a step-by-step guide",
-  "Reducing friction in testimonial request emails",
-  "Best testimonial collection email templates for SaaS",
-  "How to ask for a testimonial without sounding desperate",
-  "Turning Slack messages into testimonial gold",
-  "Social proof above the fold: the hierarchy that converts",
-  "Why your testimonials aren't converting (and the fix)",
-  "Testimonial consent and GDPR: a founder's guide",
-  "How to handle negative reviews without losing trust",
-  "Senja vs Testimonial.to vs Endorsal: an honest comparison",
-  "Building credibility before you have customers",
-  "From happy reply to published testimonial in under 5 minutes",
-  "Customer quotes that actually read like humans wrote them",
-  "Star ratings, badges, and stamps: what works in 2026",
-  "How to use testimonials in cold outreach without being cringe",
-  "Onboarding flows that automatically capture social proof",
-  "Showcasing testimonials in product UI without being thirsty",
-  "Logo walls that don't look like 2014",
-  "Testimonial-driven landing pages: the modular playbook",
-  "When to use a video vs text testimonial on a page",
-  "Building a public Wall of Love that drives signups",
-  "Tracking which testimonial actually converted a customer",
-  "Avoiding the 'AI-generated' testimonial smell",
-  "From free trial to glowing quote: the timing playbook",
-  "Repurposing testimonials across LinkedIn, X, and landing pages",
-  "Testimonial micro-copy: the words that earn the click",
-];
+/* ---------- Claude ---------- */
 
-function pickTopic(): string {
-  const day = Math.floor(Date.now() / 86_400_000);
-  return TOPICS[day % TOPICS.length];
-}
+let anthropic: Anthropic | null = null;
 
-/* ---------- Strapi blocks JSON schema (matches frontend BlockNode) ---------- */
-
-const INLINE_NODE = {
-  oneOf: [
-    {
-      type: "object",
-      required: ["type", "text"],
-      additionalProperties: false,
-      properties: {
-        type: { const: "text" },
-        text: { type: "string" },
-        bold: { type: "boolean" },
-        italic: { type: "boolean" },
-      },
-    },
-    {
-      type: "object",
-      required: ["type", "url", "children"],
-      additionalProperties: false,
-      properties: {
-        type: { const: "link" },
-        url: { type: "string" },
-        children: {
-          type: "array",
-          items: {
-            type: "object",
-            required: ["type", "text"],
-            additionalProperties: false,
-            properties: { type: { const: "text" }, text: { type: "string" } },
-          },
-        },
-      },
-    },
-  ],
-};
-
-const POST_SCHEMA = {
-  type: "object",
-  required: [
-    "title",
-    "slug",
-    "excerpt",
-    "content",
-    "target_keyword",
-    "tags",
-  ],
-  additionalProperties: false,
-  properties: {
-    title: { type: "string", minLength: 20, maxLength: 70 },
-    slug: { type: "string", pattern: "^[a-z0-9-]+$", maxLength: 60 },
-    excerpt: { type: "string", minLength: 140, maxLength: 165 },
-    target_keyword: { type: "string" },
-    tags: {
-      type: "array",
-      minItems: 3,
-      maxItems: 5,
-      items: { type: "string" },
-    },
-    content: {
-      type: "array",
-      minItems: 8,
-      items: {
-        oneOf: [
-          {
-            type: "object",
-            required: ["type", "children"],
-            additionalProperties: false,
-            properties: {
-              type: { const: "paragraph" },
-              children: { type: "array", items: INLINE_NODE },
-            },
-          },
-          {
-            type: "object",
-            required: ["type", "level", "children"],
-            additionalProperties: false,
-            properties: {
-              type: { const: "heading" },
-              level: { type: "integer", minimum: 2, maximum: 3 },
-              children: { type: "array", items: INLINE_NODE },
-            },
-          },
-          {
-            type: "object",
-            required: ["type", "format", "children"],
-            additionalProperties: false,
-            properties: {
-              type: { const: "list" },
-              format: { enum: ["ordered", "unordered"] },
-              children: {
-                type: "array",
-                items: {
-                  type: "object",
-                  required: ["type", "children"],
-                  additionalProperties: false,
-                  properties: {
-                    type: { const: "list-item" },
-                    children: { type: "array", items: INLINE_NODE },
-                  },
-                },
-              },
-            },
-          },
-          {
-            type: "object",
-            required: ["type", "children"],
-            additionalProperties: false,
-            properties: {
-              type: { const: "quote" },
-              children: { type: "array", items: INLINE_NODE },
-            },
-          },
-        ],
-      },
-    },
-  },
-};
-
-const SYSTEM_PROMPT = `You are Edvin Åslund, founder of aboast.com. You write the blog.
-
-ABOUT ABOAST (use this context to weave the product naturally into posts):
-Aboast is a SaaS for collecting, managing, and embedding customer testimonials. SaaS founders and marketers use it to: (1) send branded collection forms so customers can submit text or video testimonials in under 60 seconds, (2) manage everything in one dashboard, (3) embed a "Wall of Love" or compact widget on landing pages with one line of code. The pitch: turn happy customers into the social proof that converts trial signups.
-
-VOICE: first-person, founder-style, concrete, never corporate. Like a smart friend explaining what actually works, not a marketer. Write the way a sharp founder writes on Twitter or Indie Hackers — direct, specific, occasionally opinionated.
-
-Use the submit_blog_post tool. Output ONLY by calling that tool.
-
-CONTENT RULES:
-- Length: 1200–1800 words across all paragraph + list-item text combined.
-- Structure: open with a 1–2 paragraph hook that names the problem from the reader's side. Then 4–6 H2 sections. End with a one-paragraph wrap that ties the post to using aboast.
-- Title: 50–65 chars, target keyword near the start, no clickbait, no colons unless useful.
-- Excerpt: 140–160 chars, includes target keyword, ends with a hook the reader wants to resolve.
-- Slug: lowercase-kebab-case, target keyword first, max 60 chars.
-- Include ONE original aboast data point framed as "From what we've seen at aboast…" — use plausible internal numbers (response rates 40-70%, time-to-first-testimonial 2-7 days, CTRs 1-4%). Do not invent specific external statistics — speak qualitatively about industry trends.
-- Internal links: 2-3 link blocks pointing to /blog/<plausible-slug> for related topics.
-- Banned words: "leverage", "unlock", "harness", "elevate", "supercharge", "ultimate guide", "in today's fast-paced world", "game-changer", "in this article".
-
-READABILITY RULES (THIS IS IMPORTANT — readers skim):
-- Paragraphs: 2–4 sentences MAX. No walls of text. Break thoughts apart.
-- Use bold ({type:"text", text, bold:true}) liberally — at least 6–10 bolded phrases per post. Bold the *key insight* or the *concrete claim* in a paragraph, not the obvious noun. Example: "The trick isn't asking more often. **It's asking right after a moment of delight.**"
-- Use bullet/numbered lists for: examples, steps, anti-patterns, comparison points. Aim for 2–3 lists in a post.
-- Use italic sparingly for short emphasis or quoted terms.
-- Sentence length variety: 4–6 word sentences mixed with 15–25 word ones. Punchy openers.
-- No filler clauses ("It's important to note that…", "At the end of the day…", "When it comes to…").
-- Open H2 sections with a strong statement, not a wind-up paragraph.
-
-PRODUCT INTEGRATION RULES (this is a CONVERSION blog — every post should make the reader curious about aboast):
-- Mention aboast by name 2-3 times across the post, naturally. Frame it as "a tool like aboast" the first time, "aboast" subsequent times.
-- In at least ONE H2 section, describe a workflow that uses aboast specifically (e.g. "with aboast, you send the form right after the trial-to-paid moment…").
-- The final paragraph should reference aboast as the path to do what the post described. Not pushy — matter-of-fact.
-- If the post is comparative ("X vs Y"), aboast can be one of the options compared, presented honestly.
-
-SEO RULES:
-- target_keyword: 2–4 words, the phrase a buyer would type.
-- Use target_keyword in: title, the first paragraph, exactly one H2, and 2-4 more times naturally across the body. Density 0.8-1.2% of total word count. Do not stuff.
-- Use plain language. Short sentences mixed with medium.
-
-OUTPUT (via tool):
-- content is a Strapi blocks array. Each block has a 'type' field. Supported types: paragraph, heading (level 2 or 3), list (ordered|unordered), quote.
-- Inline nodes inside children: { type: "text", text, bold?, italic? } OR { type: "link", url, children: [{ type: "text", text }] }.
-- Do NOT include H1 — the title field is the H1.
-- Do NOT include code blocks or images.
-- tags: 3-5 short lowercase tags relevant to the post.`;
-
-/* ---------- Claude call ---------- */
-
-type ToolUse = { type: "tool_use"; name: string; input: any };
-
-async function callClaude(topic: string): Promise<any> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 8192,
-      temperature: 0.6,
-      system: SYSTEM_PROMPT,
-      tools: [
-        {
-          name: "submit_blog_post",
-          description: "Submit the final blog post for publication.",
-          input_schema: POST_SCHEMA,
-        },
-      ],
-      tool_choice: { type: "tool", name: "submit_blog_post" },
-      messages: [
-        {
-          role: "user",
-          content: `Write a blog post about: ${topic}\n\nReturn ONLY by calling submit_blog_post. The post must be original, specific, and concrete.`,
-        },
-      ],
-    }),
+async function callClaude(topic: string, links: string, retryHint?: string): Promise<{ draft: Draft | null; stopReason: string }> {
+  anthropic ??= new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  const userText = `Write a blog post about: ${topic}\n\n${retryHint ? `${retryHint}\n\n` : ""}Return ONLY by calling submit_blog_post. The post must be original, specific, and concrete.`;
+  const message = await anthropic.beta.messages.create({
+    model: MODEL,
+    max_tokens: 16000,
+    // Opus 5.5 always thinks; effort is the only dial, and it defaults to medium.
+    output_config: { effort: "high" },
+    // A request the model declines is re-run on a fallback model by the API
+    // instead of coming back as a refusal.
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    system: `${SYSTEM_PROMPT}\n\nINTERNAL LINKS (the only paths you may link to):\n${links}`,
+    tools: [{ name: "submit_blog_post", description: "Submit the final blog post for publication.", input_schema: POST_SCHEMA as Anthropic.Beta.BetaTool.InputSchema }],
+    // Opus 5.5 rejects a forced tool_choice. The prompt asks for the tool, and
+    // an answer without the call is retried like any other failed draft.
+    tool_choice: { type: "auto" },
+    messages: [{ role: "user", content: userText }],
   });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`anthropic_${res.status}: ${errText.slice(0, 300)}`);
-  }
-  const json = await res.json();
-  const toolBlock = (json.content as ToolUse[]).find((b) => b.type === "tool_use");
-  if (!toolBlock) throw new Error("anthropic_no_tool_use");
-  return toolBlock.input;
+  const call = message.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === "submit_blog_post");
+  return { draft: call ? (call.input as Draft) : null, stopReason: message.stop_reason ?? "unknown" };
 }
 
-/* ---------- Validation (belt-and-suspenders past the JSON schema) ---------- */
+/* ---------- GitHub ---------- */
 
-function flattenText(blocks: any[]): string {
-  const out: string[] = [];
-  for (const b of blocks) {
-    if (b.children) {
-      for (const c of b.children) {
-        if (c.type === "text") out.push(c.text ?? "");
-        else if (c.type === "link" && c.children) {
-          for (const cc of c.children) out.push(cc.text ?? "");
-        } else if (c.children) {
-          for (const cc of c.children) {
-            if (cc.type === "text") out.push(cc.text ?? "");
-          }
-        }
-      }
-    }
-  }
-  return out.join(" ");
-}
+const GITHUB_HEADERS = () => ({
+  Authorization: `Bearer ${GITHUB_TOKEN}`,
+  Accept: "application/vnd.github+json",
+  "X-GitHub-Api-Version": "2022-11-28",
+  "User-Agent": "aboast-blog-writer",
+});
 
-function validate(p: any): { ok: true } | { ok: false; reason: string } {
-  if (!p || typeof p !== "object") return { ok: false, reason: "not_object" };
-  for (const k of ["title", "slug", "excerpt", "content", "target_keyword", "tags"]) {
-    if (!(k in p)) return { ok: false, reason: `missing_${k}` };
-  }
-  if (!Array.isArray(p.content) || p.content.length < 8) return { ok: false, reason: "content_too_short" };
-
-  const text = flattenText(p.content);
-  const wc = text.trim().split(/\s+/).filter(Boolean).length;
-  if (wc < 1100 || wc > 2000) return { ok: false, reason: `word_count_${wc}` };
-
-  // Meaningful keyword words (≥4 chars) must ALL appear in the title,
-  // prefix-matched so "testimonial" matches "testimonials". Plural/word-order
-  // tolerant — exact substring was too strict.
-  const keywordWords = p.target_keyword
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((w: string) => w.length >= 4);
-
-  if (keywordWords.length > 0) {
-    const titleLower = p.title.toLowerCase();
-    const missingFromTitle = keywordWords.filter(
-      (w: string) => !new RegExp(`\\b${w}`, "i").test(titleLower)
-    );
-    if (missingFromTitle.length > 0) {
-      return {
-        ok: false,
-        reason: `keyword_missing_from_title: ${missingFromTitle.join(",")}`,
-      };
-    }
-  }
-
-  // Soft check: at least one H2 should contain a meaningful keyword word.
-  const h2HasSomeKeywordWord = p.content.some(
-    (b: any) =>
-      b.type === "heading" &&
-      b.level === 2 &&
-      keywordWords.some((w: string) =>
-        new RegExp(`\\b${w}`, "i").test(flattenText([b]))
-      )
-  );
-  if (!h2HasSomeKeywordWord && keywordWords.length > 0) {
-    console.warn("[cron/publish] soft warn: no H2 contains a keyword token", {
-      target_keyword: p.target_keyword,
+/** Creates content/blog/<slug>.md on the branch. Never overwrites: if the
+ *  file exists (a post from today that isn't deployed yet), tries -2, -3… */
+async function commitPost(post: BlogPost): Promise<{ slug: string; url: string }> {
+  let slug = post.slug;
+  for (let n = 2; n <= 6; n++) {
+    const res = await fetch(`https://api.github.com/repos/${BLOG_REPO}/contents/${BLOG_PATH}/${slug}.md`, {
+      method: "PUT",
+      headers: GITHUB_HEADERS(),
+      body: JSON.stringify({
+        message: `Blog: ${post.title}`,
+        content: Buffer.from(serializePost({ ...post, slug }), "utf8").toString("base64"),
+        branch: BLOG_BRANCH,
+      }),
     });
+    if (res.ok) {
+      const json = await res.json();
+      return { slug, url: json.content?.html_url ?? "" };
+    }
+    // 422 without a sha means the file already exists.
+    if (res.status !== 422) throw new Error(`github_${res.status}: ${(await res.text()).slice(0, 300)}`);
+    slug = `${post.slug.slice(0, 56)}-${n}`;
   }
-
-  if (/^#\s/m.test(text)) return { ok: false, reason: "stray_h1_in_text" };
-
-  return { ok: true };
-}
-
-/* ---------- Strapi (auto-publish + slug collision dedupe) ---------- */
-
-async function slugExists(slug: string): Promise<boolean> {
-  const url = `${STRAPI_URL}/api/blog-posts?filters[slug][$eq]=${encodeURIComponent(
-    slug
-  )}&pagination[limit]=1`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${STRAPI_TOKEN}` },
-  });
-  if (!res.ok) throw new Error(`strapi_check_${res.status}`);
-  const json = await res.json();
-  return Array.isArray(json.data) && json.data.length > 0;
-}
-
-async function uniqueSlug(base: string): Promise<string> {
-  if (!(await slugExists(base))) return base;
-  for (let i = 2; i < 10; i++) {
-    const candidate = `${base}-${i}`.slice(0, 60);
-    if (!(await slugExists(candidate))) return candidate;
-  }
-  return `${base.slice(0, 50)}-${Date.now().toString(36).slice(-4)}`;
-}
-
-async function postToStrapi(payload: any): Promise<{ id: number; documentId: string }> {
-  const res = await fetch(`${STRAPI_URL}/api/blog-posts`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${STRAPI_TOKEN}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`strapi_${res.status}: ${errText.slice(0, 300)}`);
-  }
-  const json = await res.json();
-  return { id: json.data.id, documentId: json.data.documentId };
+  throw new Error("github_slug_taken");
 }
 
 /* ---------- Handler ---------- */
 
 export async function GET(req: Request) {
-  if (CRON_SECRET) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${CRON_SECRET}`) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
-  }
+  // This endpoint spends API credits and commits to the repo: it must not be
+  // callable by anyone who finds the URL. Vercel Cron sends this header when
+  // CRON_SECRET is set in the project.
+  if (!CRON_SECRET) return NextResponse.json({ error: "CRON_SECRET is not set" }, { status: 500 });
+  if (req.headers.get("authorization") !== `Bearer ${CRON_SECRET}`) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
-  const topicOverride = url.searchParams.get("topic");
-  const topic = topicOverride ?? pickTopic();
+  const dryRun = url.searchParams.get("dry") === "1";
+  if (!ANTHROPIC_API_KEY) return NextResponse.json({ error: "ANTHROPIC_API_KEY is not set" }, { status: 500 });
+  if (!dryRun && !GITHUB_TOKEN) return NextResponse.json({ error: "GITHUB_TOKEN is not set" }, { status: 500 });
+
+  const posts = getAllPosts();
+  const topic = url.searchParams.get("topic") ?? pickTopic(posts);
+  if (!topic) {
+    console.warn("[cron/publish] skip: every topic in lib/blog-writer.ts has a post; add more");
+    return NextResponse.json({ skipped: true, reason: "no_fresh_topics" });
+  }
+  const links = internalLinks(posts);
 
   try {
-    const draft = await callClaude(topic);
-    const v = validate(draft);
-    if (!v.ok) {
-      console.warn("[cron/publish] skip: validation failed", { topic, reason: v.reason });
-      return NextResponse.json({ skipped: true, topic, reason: v.reason });
+    let draft: Draft | undefined;
+    let v: ReturnType<typeof validate> = { ok: false, reason: "not_attempted" };
+    let hint: string | undefined;
+    let attempts = 0;
+    for (attempts = 1; ; attempts++) {
+      const { draft: candidate, stopReason } = await callClaude(topic, links.list, hint);
+      draft = candidate ?? undefined;
+      // A cut-off generation can still parse; don't trust a non-tool_use stop.
+      v = !candidate
+        ? { ok: false, reason: stopReason === "end_turn" ? "no_tool_call" : `incomplete_generation_${stopReason}` }
+        : stopReason !== "tool_use"
+          ? { ok: false, reason: `incomplete_generation_${stopReason}` }
+          : validate(candidate);
+      if (v.ok || attempts === 3) break;
+      console.warn("[cron/publish] attempt failed, retrying", { topic, attempt: attempts, reason: v.reason });
+      hint = buildRetryHint(v.reason);
     }
+    if (!v.ok) {
+      console.warn("[cron/publish] skip: validation failed after retries", { topic, attempts, reason: v.reason });
+      return NextResponse.json({ skipped: true, topic, attempts, reason: v.reason });
+    }
+    if (!draft) throw new Error("no_draft");
 
-    const slug = await uniqueSlug(draft.slug);
+    const { markdown, removed } = stripUnknownLinks(tidyMarkdown(draft.content_markdown), links.paths);
+    if (removed.length) console.warn("[cron/publish] removed links outside the allowed list", { removed });
 
-    const payload = {
-      data: {
-        title: draft.title,
-        slug,
-        excerpt: draft.excerpt,
-        content: draft.content,
-        author: "Edvin Åslund",
-        publishedAt: new Date().toISOString(),
-        seo: {
-          metaTitle: draft.title,
-          metaDescription: draft.excerpt,
-          canonicalURL: `https://www.aboast.com/blog/${slug}`,
-        },
-      },
+    const taken = new Set(posts.map((p) => p.slug));
+    let slug = draft.slug;
+    for (let n = 2; taken.has(slug); n++) slug = `${draft.slug.slice(0, 56)}-${n}`;
+
+    const post: BlogPost = {
+      title: draft.title,
+      slug,
+      excerpt: draft.excerpt,
+      date: new Date().toISOString(),
+      author: "Edvin Åslund",
+      topic,
+      tags: draft.tags,
+      body: markdown,
     };
 
-    const result = await postToStrapi(payload);
-    console.log("[cron/publish] published", { topic, slug, id: result.id });
+    if (dryRun) return NextResponse.json({ ok: true, dryRun: true, topic, attempts, words: v.wc, removedLinks: removed, file: serializePost(post) });
 
-    return NextResponse.json({
-      ok: true,
-      topic,
-      slug,
-      strapi_id: result.id,
-      document_id: result.documentId,
-      tags: draft.tags,
-    });
-  } catch (err: any) {
-    console.error("[cron/publish] error", { topic, err: err?.message ?? String(err) });
-    return NextResponse.json(
-      { error: err?.message ?? String(err), topic },
-      { status: 500 }
-    );
+    const result = await commitPost(post);
+    console.log("[cron/publish] committed", { topic, slug: result.slug, attempts, words: v.wc });
+    return NextResponse.json({ ok: true, topic, slug: result.slug, commit: result.url, attempts, words: v.wc, removedLinks: removed });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[cron/publish] error", { topic, err: message });
+    return NextResponse.json({ error: message, topic }, { status: 500 });
   }
 }

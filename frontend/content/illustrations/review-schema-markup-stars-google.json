@@ -1,0 +1,43 @@
+[
+  {
+    "name": "schema-steps",
+    "type": "steps",
+    "label": "Step by step",
+    "steps": [
+      {
+        "title": "Choose the entity",
+        "body": "SoftwareApplication or Product, not your homepage.",
+        "icon": "target"
+      },
+      {
+        "title": "Gather the numbers",
+        "body": "Average and count of reviews shown on the page.",
+        "icon": "star"
+      },
+      {
+        "title": "Write the JSON-LD",
+        "body": "Nest AggregateRating inside the entity.",
+        "icon": "code"
+      },
+      {
+        "title": "Validate",
+        "body": "Rich Results Test, then Search Console.",
+        "icon": "check"
+      }
+    ]
+  },
+  {
+    "name": "monthly-check",
+    "type": "checklist",
+    "label": "Keep it in sync",
+    "title": "Your monthly markup check",
+    "items": [
+      "ratingValue matches your real average",
+      "ratingCount matches the reviews on the page",
+      "Every marked-up review is visible",
+      "No reviews copied from other sites",
+      "Rich Results Test still passes",
+      "No new errors in Search Console"
+    ]
+  }
+]
